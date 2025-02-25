@@ -1,0 +1,2 @@
+/Users/alakuntlanaresh/Desktop/Flutter Projects/pomo_timer/android/app/.cxx/RelWithDebInfo/1x424v1e/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/alakuntlanaresh/Desktop/Flutter Projects/pomo_timer/android/app/.cxx/RelWithDebInfo/1x424v1e/armeabi-v7a/CMakeFiles/rebuild_cache.dir
