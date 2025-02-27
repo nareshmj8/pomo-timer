@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:pomo_timer/providers/settings_provider.dart';
+import 'package:pomo_timer/providers/theme_provider.dart';
 
 // StatefulWidget for dynamic settings adjustments
 class SettingsScreen extends StatefulWidget {
@@ -19,50 +20,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double longBreakDuration = 15; // Long break length in minutes
   int sessionsBeforeLongBreak = 4; // Sessions before a long break
   bool soundEnabled = true; // Sound notification toggle
-  String selectedTheme = 'Light'; // Current theme selection
 
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
-
-    // Get bottom padding to account for system UI (e.g., home indicator)
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    // CupertinoPageScaffold provides an iOS-style layout
     return CupertinoPageScaffold(
-      // Top navigation bar with settings title
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Settings'), // Centered title
-        backgroundColor:
-            CupertinoColors.systemBackground, // iOS background color
-        border: null, // No border for cleaner look
-      ),
-      // SingleChildScrollView makes content scrollable
-      child: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          top: 8.0, // Top padding
-          left: 16.0, // Left padding
-          right: 16.0, // Right padding
-          bottom: bottomPadding + 100, // Extra bottom padding for UX
+      backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text(
+          'Settings',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        // SafeArea ensures content avoids system UI overlaps
-        child: SafeArea(
+        backgroundColor: Provider.of<ThemeProvider>(context)
+            .backgroundColor
+            .withValues(alpha: 204),
+        border: const Border(
+          bottom: BorderSide(
+            color: CupertinoColors.separator,
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start, // Align items to the left
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Timer Durations Section
-              _buildSectionHeader('Timer Durations'), // Section title
+              _buildSectionHeader('Timer Durations'),
               _buildSliderTile(
                 'Session Duration',
                 '${settings.sessionDuration.round()} min',
                 settings.sessionDuration,
-                1.0, // session duration slider
+                1.0,
                 120.0,
                 (value) => settings.setSessionDuration(value),
               ),
               _buildSliderTile(
-                'Short Break Duration',
+                'Short Break',
                 '${settings.shortBreakDuration.round()} min',
                 settings.shortBreakDuration,
                 1,
@@ -70,180 +69,109 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 (value) => settings.setShortBreakDuration(value),
               ),
               _buildSliderTile(
-                'Long Break Duration',
+                'Long Break',
                 '${settings.longBreakDuration.round()} min',
                 settings.longBreakDuration,
                 5,
                 45,
                 (value) => settings.setLongBreakDuration(value),
               ),
-              const SizedBox(height: 24), // Spacing between sections
-
-              // Session Cycle Section
               _buildSectionHeader('Session Cycle'),
               Container(
-                padding: const EdgeInsets.all(16),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6,
-                  borderRadius: BorderRadius.circular(8),
+                  color: Provider.of<ThemeProvider>(context)
+                      .secondaryBackgroundColor,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Sessions before long break'),
-                    GestureDetector(
-                      onTap: () {
-                        showCupertinoModalPopup(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Container(
-                              height: 250, // Increased height
-                              padding: EdgeInsets.only(
-                                bottom: MediaQuery.of(context).padding.bottom,
-                              ), // Add padding for safe area
-                              color: CupertinoColors.systemBackground,
-                              child: Column(
-                                children: [
-                                  Container(
-                                    height:
-                                        50, // Increased height for Done button
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
-                                    decoration: const BoxDecoration(
-                                      color: CupertinoColors.systemGrey6,
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: CupertinoColors.separator,
-                                          width: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        CupertinoButton(
-                                          padding: EdgeInsets.zero,
-                                          child: const Text('Done'),
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: CupertinoPicker(
-                                      itemExtent: 44, // Increased item height
-                                      onSelectedItemChanged: (int index) {
-                                        settings.setSessionsBeforeLongBreak(
-                                            index + 1);
-                                      },
-                                      scrollController:
-                                          FixedExtentScrollController(
-                                        initialItem:
-                                            settings.sessionsBeforeLongBreak -
-                                                1,
-                                      ),
-                                      children:
-                                          List<Widget>.generate(8, (index) {
-                                        return Center(
-                                          child: Text(
-                                            (index + 1).toString(),
-                                            style:
-                                                const TextStyle(fontSize: 20),
-                                          ),
-                                        );
-                                      }),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          Text(
-                            settings.sessionsBeforeLongBreak.toString(),
-                            style: const TextStyle(
-                              color: CupertinoColors.activeBlue,
-                            ),
-                          ),
-                          const Icon(
-                            CupertinoIcons.chevron_down,
-                            size: 16,
+                child: CupertinoListTile(
+                  title: const Text(
+                    'Sessions before long break',
+                    style: TextStyle(
+                      fontSize: 17,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                  trailing: GestureDetector(
+                    onTap: () => _showSessionsPicker(context, settings),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          settings.sessionsBeforeLongBreak.toString(),
+                          style: const TextStyle(
+                            fontSize: 17,
                             color: CupertinoColors.activeBlue,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          CupertinoIcons.chevron_down,
+                          size: 16,
+                          color: CupertinoColors.activeBlue,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Themes Section
-              _buildSectionHeader('Themes'),
+              _buildSectionHeader('Theme'),
               Container(
-                height: 100, // Fixed height for horizontal list
+                height: 120,
                 padding:
-                    const EdgeInsets.symmetric(vertical: 8), // Vertical padding
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: ListView(
-                  scrollDirection: Axis.horizontal, // Horizontal scrolling
-                  children: [
-                    _buildThemeTile(
-                        'Light', CupertinoColors.systemGrey5), // Light theme
-                    _buildThemeTile(
-                        'Dark', CupertinoColors.black), // Dark theme
-                    _buildThemeTile(
-                        'Calm', const Color(0xFF7CA5B8)), // Custom calm theme
-                    _buildThemeTile('Forest',
-                        const Color(0xFF2D5A27)), // Custom forest theme
-                  ],
+                  scrollDirection: Axis.horizontal,
+                  children: ThemeProvider.availableThemes.map((theme) {
+                    return _buildThemeTile(
+                      theme.name,
+                      theme.backgroundColor ?? theme.primaryColor,
+                      gradient: theme.gradient,
+                    );
+                  }).toList(),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Notifications Section
               _buildSectionHeader('Notifications'),
               Container(
-                padding: const EdgeInsets.all(16),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6,
-                  borderRadius: BorderRadius.circular(8),
+                  color: Provider.of<ThemeProvider>(context)
+                      .secondaryBackgroundColor,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Sound'), // Label
-                    CupertinoSwitch(
-                      value: soundEnabled, // Current state
-                      onChanged: (value) =>
-                          setState(() => soundEnabled = value), // Toggle switch
+                child: CupertinoListTile(
+                  title: const Text(
+                    'Sound',
+                    style: TextStyle(
+                      fontSize: 17,
+                      color: CupertinoColors.label,
                     ),
-                  ],
+                  ),
+                  trailing: CupertinoSwitch(
+                    value: soundEnabled,
+                    onChanged: (value) => setState(() => soundEnabled = value),
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Data Management Section
-              _buildSectionHeader('Data Management'),
-              Container(
-                width: double.infinity, // Full width button
-                padding: const EdgeInsets.only(
-                    bottom:
-                        32.0), // Bottom padding (likely a typo, should be 'bottom')
+              _buildSectionHeader('Data'),
+              Padding(
+                padding: EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 4.0,
+                  bottom: bottomPadding + 16.0,
+                ),
                 child: CupertinoButton(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12), // Button padding
-                  color: CupertinoColors.systemGrey5, // Button background
-                  borderRadius: BorderRadius.circular(8), // Rounded corners
-                  onPressed: () =>
-                      _showResetConfirmation(context), // Show reset dialog
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  color: CupertinoColors.systemGrey6,
+                  borderRadius: BorderRadius.circular(10),
+                  onPressed: () => _showResetConfirmation(context),
                   child: const Text(
                     'Reset App Data',
                     style: TextStyle(
-                      color: CupertinoColors.systemRed, // Red text for warning
+                      color: CupertinoColors.systemRed,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -260,12 +188,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(
-          bottom: 8.0), // Bottom padding (likely a typo, should be 'bottom')
+          left: 16.0, right: 16.0, top: 32.0, bottom: 10.0),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: Provider.of<ThemeProvider>(context).currentTheme.primaryColor,
         ),
       ),
     );
@@ -275,30 +204,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildSliderTile(String title, String value, double sliderValue,
       double min, double max, Function(double) onChanged) {
     return Container(
-      padding: const EdgeInsets.all(16), // Inner padding
-      margin: const EdgeInsets.only(
-          bottom: 8), // Bottom margin (likely a typo, should be 'bottom')
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6, // Light gray background
-        borderRadius: BorderRadius.circular(8), // Rounded corners
+        color: Provider.of<ThemeProvider>(context).secondaryBackgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFE8F0FE), // Light blue border
+          width: 1.0,
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // Align to left
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment:
-                MainAxisAlignment.spaceBetween, // Space out title and value
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title), // Setting name
-              Text(value), // Current value (e.g., "25 min")
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                  color: CupertinoColors.label,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF2C7BE5), // Vibrant blue
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 8), // Spacing
+          const SizedBox(height: 8),
           CupertinoSlider(
-            value: sliderValue, // Current slider position
-            min: min, // Minimum value
-            max: max, // Maximum value
-            onChanged: onChanged, // Update value on slide
+            value: sliderValue,
+            min: min,
+            max: max,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF2C7BE5), // Vibrant blue
           ),
         ],
       ),
@@ -306,33 +252,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // Builds a theme selection tile
-  Widget _buildThemeTile(String name, Color color) {
-    final isSelected = selectedTheme == name; // Check if this theme is selected
+  Widget _buildThemeTile(String name, Color color, {LinearGradient? gradient}) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isSelected = themeProvider.currentTheme.name == name;
     return GestureDetector(
-      onTap: () =>
-          setState(() => selectedTheme = name), // Update selected theme
+      onTap: () => themeProvider.setTheme(name),
       child: Container(
-        width: 80, // Fixed width
-        margin: const EdgeInsets.only(right: 12), // Space between tiles
+        width: 100,
+        height: 100,
+        margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: color, // Theme color
-          borderRadius: BorderRadius.circular(8), // Rounded corners
-          border: isSelected
-              ? Border.all(
-                  color: CupertinoColors.activeBlue,
-                  width: 2) // Highlight if selected
-              : null,
-        ),
-        child: Center(
-          child: Text(
-            name,
-            style: TextStyle(
-              // Text color adapts to background luminance (light or dark)
-              color: color.computeLuminance() > 0.5
-                  ? CupertinoColors.black
-                  : CupertinoColors.white,
-            ),
+          color: gradient == null ? color : null,
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF2C7BE5) // Vibrant blue
+                : const Color(0xFFE8F0FE), // Light blue border
+            width: isSelected ? 2.0 : 1.0,
           ),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: gradient != null || color.computeLuminance() < 0.5
+                      ? CupertinoColors.white
+                      : CupertinoColors.black,
+                ),
+              ),
+            ),
+            if (isSelected)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2C7BE5), // Vibrant blue
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.checkmark,
+                    size: 16,
+                    color: CupertinoColors.white,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -381,6 +353,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // Shows a sessions picker
+  void _showSessionsPicker(BuildContext context, SettingsProvider settings) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 250, // Increased height
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+          ), // Add padding for safe area
+          color: CupertinoColors.systemBackground,
+          child: Column(
+            children: [
+              Container(
+                height: 50, // Increased height for Done button
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: const BoxDecoration(
+                  color: CupertinoColors.systemGrey6,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: CupertinoColors.separator,
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      child: const Text('Done'),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: CupertinoPicker(
+                  itemExtent: 44, // Increased item height
+                  onSelectedItemChanged: (int index) {
+                    settings.setSessionsBeforeLongBreak(index + 1);
+                  },
+                  scrollController: FixedExtentScrollController(
+                    initialItem: settings.sessionsBeforeLongBreak - 1,
+                  ),
+                  children: List<Widget>.generate(8, (index) {
+                    return Center(
+                      child: Text(
+                        (index + 1).toString(),
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Provider.of<ThemeProvider>(context).textColor,
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

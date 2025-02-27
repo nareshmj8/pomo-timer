@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:pomo_timer/providers/settings_provider.dart';
+import 'package:pomo_timer/providers/theme_provider.dart';
 import 'package:intl/intl.dart';
 
 // StatefulWidget allows the HistoryScreen to manage dynamic state (e.g., search filtering)
@@ -30,11 +31,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         // CupertinoPageScaffold provides an iOS-style page structure
         return CupertinoPageScaffold(
           // Navigation bar at the top with a title
-          navigationBar: const CupertinoNavigationBar(
-            middle: Text('History'), // Title centered in the bar
+          navigationBar: CupertinoNavigationBar(
+            middle: Text(
+              'History',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: Provider.of<ThemeProvider>(context).textColor,
+              ),
+            ),
             backgroundColor:
-                CupertinoColors.systemBackground, // Matches iOS background
-            border: null, // Removes default border for a cleaner look
+                Provider.of<ThemeProvider>(context).backgroundColor,
+            border: null,
           ),
           // SafeArea ensures content avoids system UI overlaps (e.g., notch, status bar)
           child: SafeArea(
@@ -93,29 +101,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 // Category text, bold and prominent
                                 Text(
                                   entry.category,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
+                                    color: Provider.of<ThemeProvider>(context)
+                                        .textColor,
                                   ),
                                 ),
                                 const SizedBox(height: 4), // Small vertical gap
                                 // Duration text, styled as secondary info
                                 Text(
                                   '${entry.duration} minutes',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
-                                    color: CupertinoColors
-                                        .secondaryLabel, // Gray color for less emphasis
+                                    color: Provider.of<ThemeProvider>(context)
+                                        .textColor
+                                        .withValues(alpha: 204),
                                   ),
                                 ),
                                 const SizedBox(height: 4), // Small vertical gap
                                 // Timestamp text, smaller and secondary
                                 Text(
                                   formattedTime,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: CupertinoColors
-                                        .secondaryLabel, // Gray color
+                                    color: Provider.of<ThemeProvider>(context)
+                                        .textColor
+                                        .withValues(alpha: 204),
                                   ),
                                 ),
                               ],

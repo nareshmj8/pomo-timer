@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:pomo_timer/providers/settings_provider.dart';
+import 'package:pomo_timer/providers/theme_provider.dart';
 
 class AppearanceSettingsScreen extends StatelessWidget {
   const AppearanceSettingsScreen({super.key});
@@ -8,9 +9,17 @@ class AppearanceSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Appearance'),
-        backgroundColor: CupertinoColors.systemBackground,
+      backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          'Appearance',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: Provider.of<ThemeProvider>(context).textColor,
+          ),
+        ),
+        backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
         border: null,
       ),
       child: SafeArea(

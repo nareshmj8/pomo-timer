@@ -1,20 +1,8 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart';
-import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-
-class HistoryEntry {
-  final String category;
-  final int duration;
-  final DateTime timestamp;
-
-  HistoryEntry({
-    required this.category,
-    required this.duration,
-    required this.timestamp,
-  });
-}
+import '../models/history_entry.dart';
+import '../models/chart_data.dart';
 
 class SettingsProvider with ChangeNotifier {
   double _sessionDuration = 25.0;
@@ -22,6 +10,11 @@ class SettingsProvider with ChangeNotifier {
   double _longBreakDuration = 15.0;
   int _sessionsBeforeLongBreak = 4;
   int _completedSessions = 0;
+
+  Future<void> init() async {
+    // Initialize any required settings, load saved data, etc.
+    notifyListeners();
+  }
 
   bool _isTimerRunning = false;
   bool _isTimerPaused = false;
@@ -36,7 +29,7 @@ class SettingsProvider with ChangeNotifier {
   late int _totalSeconds;
 
   // Add list to store history
-  List<HistoryEntry> _history = [];
+  final List<HistoryEntry> _history = [];
   List<HistoryEntry> get history => _history;
 
   // Add flag for session completion
@@ -57,12 +50,12 @@ class SettingsProvider with ChangeNotifier {
   double get progress => _progress;
 
   // Constants for time calculations
-  static const int DEFAULT_SESSION_MINUTES = 25;
-  static const int MINUTES_PER_HOUR = 60;
+  static const int defaultSessionMinutes = 25;
+  static const int minutesPerHour = 60;
 
   // Convert minutes to hours
   double _minutesToHours(int minutes) {
-    return minutes / MINUTES_PER_HOUR;
+    return minutes / minutesPerHour;
   }
 
   // Get statistics for a category
@@ -109,7 +102,7 @@ class SettingsProvider with ChangeNotifier {
   }
 
   int _calculateSessions(int minutes) {
-    return (minutes / DEFAULT_SESSION_MINUTES).floor();
+    return (minutes / defaultSessionMinutes).floor();
   }
 
   // Get daily data for the last 7 days
@@ -126,8 +119,9 @@ class SettingsProvider with ChangeNotifier {
       int sessions = 0;
 
       for (var entry in _history) {
-        if (category != 'All Categories' && entry.category != category)
+        if (category != 'All Categories' && entry.category != category) {
           continue;
+        }
         if (entry.timestamp.isAfter(dayStart) &&
             entry.timestamp.isBefore(dayEnd)) {
           hours += _minutesToHours(entry.duration);
@@ -159,8 +153,9 @@ class SettingsProvider with ChangeNotifier {
       int sessions = 0;
 
       for (var entry in _history) {
-        if (category != 'All Categories' && entry.category != category)
+        if (category != 'All Categories' && entry.category != category) {
           continue;
+        }
         if (entry.timestamp.isAfter(weekStart) &&
             entry.timestamp.isBefore(weekEnd)) {
           hours += _minutesToHours(entry.duration);
@@ -191,8 +186,9 @@ class SettingsProvider with ChangeNotifier {
       int sessions = 0;
 
       for (var entry in _history) {
-        if (category != 'All Categories' && entry.category != category)
+        if (category != 'All Categories' && entry.category != category) {
           continue;
+        }
         if (entry.timestamp.isAfter(monthStart) &&
             entry.timestamp.isBefore(monthEnd)) {
           hours += _minutesToHours(entry.duration);
@@ -259,10 +255,14 @@ class SettingsProvider with ChangeNotifier {
     _isBreak = true;
     _isTimerRunning = true;
     _isTimerPaused = false;
+    bool isLongBreak = shouldTakeLongBreak();
     _remainingTime = Duration(
-        minutes: shouldTakeLongBreak()
-            ? _longBreakDuration.round() // Use long break duration
+        minutes: isLongBreak
+            ? _longBreakDuration.round()
             : _shortBreakDuration.round());
+    if (isLongBreak) {
+      resetCompletedSessions();
+    }
     _totalSeconds = _remainingTime!.inSeconds;
     _progress = 1.0;
     _startCountdown();
@@ -337,11 +337,14 @@ class SettingsProvider with ChangeNotifier {
             timestamp: DateTime.now(),
           ));
           incrementCompletedSessions();
-          _sessionCompleted = true; // Set flag when session completes
+          _sessionCompleted = true;
           _remainingTime = Duration(minutes: _sessionDuration.round());
           _progress = 1.0;
         } else {
           _isBreak = false;
+          if (shouldTakeLongBreak()) {
+            resetCompletedSessions();
+          }
           _remainingTime = Duration(minutes: _sessionDuration.round());
           _progress = 1.0;
         }
@@ -397,19 +400,4 @@ class SettingsProvider with ChangeNotifier {
     _selectedTheme = theme;
     notifyListeners();
   }
-}
-
-// Add this class for chart data
-class ChartData {
-  final DateTime date;
-  final double hours;
-  final int sessions;
-  final bool isCurrentPeriod;
-
-  ChartData({
-    required this.date,
-    required this.hours,
-    required this.sessions,
-    required this.isCurrentPeriod,
-  });
 }

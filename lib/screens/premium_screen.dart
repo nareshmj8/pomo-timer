@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import 'package:pomo_timer/providers/theme_provider.dart';
 
 // StatelessWidget for a static premium features screen
 class PremiumScreen extends StatelessWidget {
@@ -9,12 +11,18 @@ class PremiumScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // CupertinoPageScaffold provides an iOS-style page layout
     return CupertinoPageScaffold(
-      // Navigation bar at the top of the screen
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Go Premium'), // Title centered in the bar
-        backgroundColor:
-            CupertinoColors.systemBackground, // iOS white background
-        border: null, // No bottom border for a clean look
+      backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          'Go Premium',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: Provider.of<ThemeProvider>(context).textColor,
+          ),
+        ),
+        backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
+        border: null,
       ),
       // SafeArea ensures content avoids system UI (e.g., notch, home indicator)
       child: SafeArea(
@@ -44,12 +52,14 @@ class PremiumScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 24), // Spacing after icon
                       // Centered title text
-                      const Center(
+                      Center(
                         child: Text(
                           'Unlock Premium Features', // Main heading
                           style: TextStyle(
                             fontSize: 24, // Large text
                             fontWeight: FontWeight.bold, // Bold for emphasis
+                            color:
+                                Provider.of<ThemeProvider>(context).textColor,
                           ),
                         ),
                       ),
@@ -57,27 +67,31 @@ class PremiumScreen extends StatelessWidget {
                           height: 32), // Larger spacing before benefits
                       // List of premium benefits using _buildBenefitItem
                       _buildBenefitItem(
-                        CupertinoIcons.checkmark_circle_fill, // Checkmark icon
-                        'Ad-free Experience', // Benefit title
-                        'Enjoy uninterrupted focus sessions', // Description
+                        context,
+                        CupertinoIcons.checkmark_circle_fill,
+                        'Ad-free Experience',
+                        'Enjoy uninterrupted focus sessions',
                       ),
                       const SizedBox(height: 16), // Spacing between items
                       _buildBenefitItem(
-                        CupertinoIcons.paintbrush_fill, // Paintbrush icon
-                        'Exclusive Themes', // Benefit title
-                        'Access beautiful custom themes', // Description
+                        context,
+                        CupertinoIcons.paintbrush_fill,
+                        'Exclusive Themes',
+                        'Access beautiful custom themes',
                       ),
                       const SizedBox(height: 16),
                       _buildBenefitItem(
-                        CupertinoIcons.chart_bar_fill, // Chart icon
-                        'Detailed Statistics', // Benefit title
-                        'Get insights into your productivity', // Description
+                        context,
+                        CupertinoIcons.chart_bar_fill,
+                        'Detailed Statistics',
+                        'Get insights into your productivity',
                       ),
                       const SizedBox(height: 16),
                       _buildBenefitItem(
-                        CupertinoIcons.cloud_upload_fill, // Cloud icon
-                        'Backup', // Benefit title
-                        'Import or export your data', // Description
+                        context,
+                        CupertinoIcons.cloud_upload_fill,
+                        'Backup',
+                        'Import or export your data',
                       ),
                     ],
                   ),
@@ -118,12 +132,13 @@ class PremiumScreen extends StatelessWidget {
   }
 
   // Helper method to create a benefit card with icon, title, and description
-  Widget _buildBenefitItem(IconData icon, String title, String description) {
+  Widget _buildBenefitItem(
+      BuildContext context, IconData icon, String title, String description) {
     return Container(
       padding: const EdgeInsets.all(16), // Inner padding for content
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6, // Light gray background
-        borderRadius: BorderRadius.circular(12), // Rounded corners
+        color: Provider.of<ThemeProvider>(context).secondaryBackgroundColor,
+        borderRadius: BorderRadius.circular(12),
       ),
       // Row arranges icon and text horizontally
       child: Row(

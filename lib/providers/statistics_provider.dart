@@ -3,10 +3,10 @@ import '../models/chart_data.dart';
 import '../models/history_entry.dart';
 
 class StatisticsProvider with ChangeNotifier {
-  static const int MINUTES_PER_HOUR = 60;
+  static const int minutesPerHour = 60;
 
   double _minutesToHours(int minutes) {
-    return minutes / MINUTES_PER_HOUR;
+    return minutes / minutesPerHour;
   }
 
   Map<String, double> getCategoryStats(
