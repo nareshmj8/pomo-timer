@@ -38,7 +38,7 @@ class StatisticsProvider with ChangeNotifier {
         .map((e) => ChartData(
               date: e.key,
               hours: e.value['hours'] ?? 0,
-              sessions: (e.value['sessions'] ?? 0).toInt(),
+              sessions: e.value['sessions'] ?? 0,
               isCurrentPeriod: e.key.day == DateTime.now().day,
             ))
         .toList();

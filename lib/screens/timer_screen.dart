@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
-import '../providers/theme_provider.dart';
 import '../widgets/timer/timer_display.dart';
 import '../widgets/timer/timer_controls.dart';
 import '../widgets/timer/category_selector.dart';
@@ -27,20 +26,10 @@ class _TimerScreenState extends State<TimerScreen> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: Text(
-          'Session Complete!',
-          style: TextStyle(
-            color: Provider.of<ThemeProvider>(context).textColor,
-          ),
-        ),
-        content: Text(
-          isLongBreakDue
-              ? 'Great job! Would you like to take a long break?'
-              : 'Would you like to take a short break?',
-          style: TextStyle(
-            color: Provider.of<ThemeProvider>(context).textColor,
-          ),
-        ),
+        title: const Text('Session Complete!'),
+        content: Text(isLongBreakDue
+            ? 'Great job! Would you like to take a long break?'
+            : 'Would you like to take a short break?'),
         actions: [
           CupertinoDialogAction(
             child: const Text('Skip'),
@@ -85,14 +74,13 @@ class _TimerScreenState extends State<TimerScreen> {
         }
 
         return CupertinoPageScaffold(
-          backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
-          navigationBar: CupertinoNavigationBar(
+          backgroundColor: settings.backgroundColor,
+          navigationBar: const CupertinoNavigationBar(
             middle: Text(
               'Home',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: Provider.of<ThemeProvider>(context).textColor,
               ),
             ),
           ),

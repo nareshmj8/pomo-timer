@@ -1,25 +1,25 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:pomo_timer/providers/settings_provider.dart';
-import 'package:pomo_timer/providers/theme_provider.dart';
 
 class AppearanceSettingsScreen extends StatelessWidget {
   const AppearanceSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
     return CupertinoPageScaffold(
-      backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
+      backgroundColor: settings.backgroundColor,
       navigationBar: CupertinoNavigationBar(
         middle: Text(
           'Appearance',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: Provider.of<ThemeProvider>(context).textColor,
+            color: settings.textColor,
           ),
         ),
-        backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
+        backgroundColor: settings.backgroundColor,
         border: null,
       ),
       child: SafeArea(
@@ -35,7 +35,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    _buildThemeTile('Light', CupertinoColors.systemGrey5),
+                    _buildThemeTile('Light', CupertinoColors.systemBackground),
                     _buildThemeTile('Dark', CupertinoColors.black),
                     _buildThemeTile('Calm', const Color(0xFF7CA5B8)),
                     _buildThemeTile('Forest', const Color(0xFF2D5A27)),

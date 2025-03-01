@@ -1,7 +1,7 @@
 class ChartData {
   final DateTime date;
   final double hours;
-  final int sessions;
+  final double sessions;
   final bool isCurrentPeriod;
 
   ChartData({

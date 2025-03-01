@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:pomo_timer/providers/theme_provider.dart';
+import 'package:pomo_timer/providers/settings_provider.dart';
 
 // StatelessWidget for a static premium features screen
 class PremiumScreen extends StatelessWidget {
@@ -9,118 +9,209 @@ class PremiumScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // CupertinoPageScaffold provides an iOS-style page layout
-    return CupertinoPageScaffold(
-      backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(
-          'Go Premium',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: Provider.of<ThemeProvider>(context).textColor,
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) => CupertinoPageScaffold(
+        backgroundColor: settings.backgroundColor,
+        navigationBar: CupertinoNavigationBar(
+          middle: const Text(
+            'Premium',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          backgroundColor: settings.backgroundColor,
+          border: Border(
+            bottom: BorderSide(
+              color: settings.selectedTheme == 'Light'
+                  ? CupertinoColors.separator
+                  : settings.backgroundColor.withAlpha(77),
+              width: 0.5,
+            ),
           ),
         ),
-        backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
-        border: null,
-      ),
-      // SafeArea ensures content avoids system UI (e.g., notch, home indicator)
-      child: SafeArea(
-        // Padding adds consistent spacing around content
-        child: Padding(
-          padding: const EdgeInsets.all(16.0), // 16px padding on all sides
-          // Column arranges content vertically
-          child: Column(
+        child: SafeArea(
+          child: Stack(
             children: [
-              // Expanded takes up all available vertical space for scrollable content
-              Expanded(
-                // SingleChildScrollView enables scrolling if content overflows
-                child: SingleChildScrollView(
-                  // Inner Column for premium feature content
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start, // Align items to the left
-                    children: [
-                      const SizedBox(height: 24), // Vertical spacing at the top
-                      // Centered premium icon
-                      const Center(
-                        child: Icon(
-                          CupertinoIcons.star_fill, // Filled star icon
-                          size: 80, // Large size for emphasis
-                          color: CupertinoColors.systemYellow, // Yellow color
-                        ),
-                      ),
-                      const SizedBox(height: 24), // Spacing after icon
-                      // Centered title text
-                      Center(
-                        child: Text(
-                          'Unlock Premium Features', // Main heading
-                          style: TextStyle(
-                            fontSize: 24, // Large text
-                            fontWeight: FontWeight.bold, // Bold for emphasis
-                            color:
-                                Provider.of<ThemeProvider>(context).textColor,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                          height: 32), // Larger spacing before benefits
-                      // List of premium benefits using _buildBenefitItem
-                      _buildBenefitItem(
-                        context,
-                        CupertinoIcons.checkmark_circle_fill,
-                        'Ad-free Experience',
-                        'Enjoy uninterrupted focus sessions',
-                      ),
-                      const SizedBox(height: 16), // Spacing between items
-                      _buildBenefitItem(
-                        context,
-                        CupertinoIcons.paintbrush_fill,
-                        'Exclusive Themes',
-                        'Access beautiful custom themes',
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBenefitItem(
-                        context,
-                        CupertinoIcons.chart_bar_fill,
-                        'Detailed Statistics',
-                        'Get insights into your productivity',
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBenefitItem(
-                        context,
-                        CupertinoIcons.cloud_upload_fill,
-                        'Backup',
-                        'Import or export your data',
-                      ),
-                    ],
+              // Background design elements
+              Positioned(
+                top: -100,
+                right: -100,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: CupertinoColors.systemYellow.withAlpha(30),
                   ),
                 ),
               ),
-              // Upgrade button at the bottom
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 10.0), // Vertical padding
-                child: SizedBox(
-                  width: double.infinity, // Full-width button
-                  child: CupertinoButton(
-                    color: CupertinoColors.activeBlue, // Blue background
-                    borderRadius: BorderRadius.circular(12), // Rounded corners
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16), // Vertical padding
-                    onPressed: () {
-                      // Placeholder for upgrade action (e.g., payment processing)
-                      // TODO: Implement purchase logic here
-                    },
-                    pressedOpacity: 0.7, // Slightly dim when pressed
-                    child: const Text(
-                      'Upgrade Now', // Button text
-                      style: TextStyle(
-                        fontSize: 18, // Larger text
-                        fontWeight: FontWeight.w600, // Semi-bold
-                        color: CupertinoColors.white, // White text
+              Positioned(
+                bottom: -50,
+                left: -50,
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: CupertinoColors.activeBlue.withAlpha(20),
+                  ),
+                ),
+              ),
+              // Main content
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 30),
+                      // Premium badge with glow effect
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: CupertinoColors.systemYellow.withAlpha(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  CupertinoColors.systemYellow.withAlpha(100),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.star_fill,
+                          size: 60,
+                          color: CupertinoColors.systemYellow,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Upgrade to Premium',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: settings.textColor,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Unlock all features and enhance your productivity',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: settings.textColor.withAlpha(180),
+                          letterSpacing: -0.3,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 40),
+                      // Premium features list
+                      _buildFeatureCard(
+                        context,
+                        settings,
+                        CupertinoIcons.chart_bar_alt_fill,
+                        'Advanced Statistics',
+                        'Get detailed insights into your productivity patterns',
+                        CupertinoColors.systemBlue,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildFeatureCard(
+                        context,
+                        settings,
+                        CupertinoIcons.paintbrush_fill,
+                        'Custom Themes',
+                        'Access beautiful custom themes',
+                        CupertinoColors.systemPink,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildFeatureCard(
+                        context,
+                        settings,
+                        CupertinoIcons.cloud_upload_fill,
+                        'Backup',
+                        'Import and export your data',
+                        CupertinoColors.systemGreen,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildFeatureCard(
+                        context,
+                        settings,
+                        CupertinoIcons.checkmark_shield_fill,
+                        'Ad-Free Experience',
+                        'Enjoy uninterrupted focus sessions without ads',
+                        CupertinoColors.systemOrange,
+                      ),
+                      const SizedBox(height: 40),
+                      // Price section
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: CupertinoColors.systemGrey5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: CupertinoColors.systemGrey.withAlpha(20),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              '\$4.99',
+                              style: TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                color: CupertinoColors.label,
+                              ),
+                            ),
+                            Text(
+                              'per month',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: CupertinoColors.label.withAlpha(180),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              width: double.infinity,
+                              child: CupertinoButton(
+                                color: CupertinoColors.activeBlue,
+                                borderRadius: BorderRadius.circular(12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                onPressed: () {
+                                  // TODO: Implement purchase
+                                },
+                                child: const Text(
+                                  'Start Free Trial',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: CupertinoColors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              '7-day free trial, cancel anytime',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: CupertinoColors.label.withAlpha(150),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                    ],
                   ),
                 ),
               ),
@@ -131,49 +222,65 @@ class PremiumScreen extends StatelessWidget {
     );
   }
 
-  // Helper method to create a benefit card with icon, title, and description
-  Widget _buildBenefitItem(
-      BuildContext context, IconData icon, String title, String description) {
+  Widget _buildFeatureCard(
+    BuildContext context,
+    SettingsProvider settings,
+    IconData icon,
+    String title,
+    String description,
+    Color iconColor,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(16), // Inner padding for content
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Provider.of<ThemeProvider>(context).secondaryBackgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        color: CupertinoColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: CupertinoColors.systemGrey5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CupertinoColors.systemGrey.withAlpha(20),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      // Row arranges icon and text horizontally
       child: Row(
         children: [
-          // Icon on the left
-          Icon(
-            icon, // Provided icon (e.g., checkmark, paintbrush)
-            color: CupertinoColors.activeBlue, // Blue color
-            size: 28, // Moderate size
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: iconColor.withAlpha(30),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 28,
+            ),
           ),
-          const SizedBox(width: 16), // Spacing between icon and text
-          // Expanded ensures text takes remaining space
+          const SizedBox(width: 16),
           Expanded(
-            // Column stacks title and description vertically
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start, // Align text to the left
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Benefit title
                 Text(
-                  title, // Main text (e.g., "Ad-free Experience")
+                  title,
                   style: const TextStyle(
-                    fontSize: 16, // Moderate size
-                    fontWeight: FontWeight.w600, // Semi-bold
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: CupertinoColors.label,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(
-                    height: 4), // Small gap between title and description
-                // Benefit description
+                const SizedBox(height: 4),
                 Text(
-                  description, // Explanation text (e.g., "Enjoy uninterrupted focus sessions")
-                  style: const TextStyle(
-                    fontSize: 14, // Smaller size
-                    color: CupertinoColors
-                        .secondaryLabel, // Gray for secondary text
+                  description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: CupertinoColors.label.withAlpha(180),
+                    letterSpacing: -0.2,
                   ),
                 ),
               ],

@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import '../../../theme/theme_provider.dart';
 
 class CategorySelector extends StatelessWidget {
   final String selectedCategory;
@@ -16,8 +18,10 @@ class CategorySelector extends StatelessWidget {
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
+        final theme = context.watch<ThemeProvider>().currentTheme;
         return CupertinoActionSheet(
-          title: const Text('Select Category'),
+          title:
+              Text('Select Category', style: TextStyle(color: theme.textColor)),
           actions: categories
               .map((category) => CupertinoActionSheetAction(
                     onPressed: () {
@@ -38,14 +42,16 @@ class CategorySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.watch<ThemeProvider>().currentTheme;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             'Category:',
-            style: TextStyle(fontSize: 16, color: CupertinoColors.black),
+            style: TextStyle(fontSize: 16, color: theme.textColor),
           ),
           CupertinoButton(
             padding: EdgeInsets.zero,
@@ -54,16 +60,16 @@ class CategorySelector extends StatelessWidget {
               children: [
                 Text(
                   selectedCategory,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    color: CupertinoColors.activeBlue,
+                    color: theme.textColor,
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(
+                Icon(
                   CupertinoIcons.chevron_down,
                   size: 16,
-                  color: CupertinoColors.activeBlue,
+                  color: theme.textColor,
                 ),
               ],
             ),

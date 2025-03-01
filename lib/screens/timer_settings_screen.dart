@@ -1,64 +1,103 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:pomo_timer/providers/settings_provider.dart';
-import 'package:pomo_timer/providers/theme_provider.dart';
 
 class TimerSettingsScreen extends StatelessWidget {
   const TimerSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsProvider>(context);
-
-    return CupertinoPageScaffold(
-      backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(
-          'Timer Settings',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: Provider.of<ThemeProvider>(context).textColor,
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) => CupertinoPageScaffold(
+        backgroundColor: CupertinoColors.black,
+        navigationBar: CupertinoNavigationBar(
+          middle: const Text(
+            'Timer Settings',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: CupertinoColors.white,
+            ),
+          ),
+          backgroundColor: CupertinoColors.black,
+          border: const Border(
+            bottom: BorderSide(
+              color: CupertinoColors.white,
+              width: 0.5,
+            ),
           ),
         ),
-        backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
-        border: null,
-      ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader('Timer Durations'),
-              _buildSliderTile(
-                'Session Duration',
-                '${settings.sessionDuration.round()} min',
-                settings.sessionDuration,
-                1.0,
-                120.0,
-                (value) => settings.setSessionDuration(value),
-              ),
-              _buildSliderTile(
-                'Short Break',
-                '${settings.shortBreakDuration.round()} min',
-                settings.shortBreakDuration,
-                1,
-                30,
-                (value) => settings.setShortBreakDuration(value),
-              ),
-              _buildSliderTile(
-                'Long Break',
-                '${settings.longBreakDuration.round()} min',
-                settings.longBreakDuration,
-                5,
-                45,
-                (value) => settings.setLongBreakDuration(value),
-              ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Session Cycle'),
-              _buildSessionCounter(context, settings),
-            ],
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader('Timer Durations'),
+                _buildSliderTile(
+                  'Session Duration',
+                  '${settings.sessionDuration.round()} min',
+                  settings.sessionDuration,
+                  1.0,
+                  120.0,
+                  (value) => settings.setSessionDuration(value),
+                ),
+                _buildSliderTile(
+                  'Short Break',
+                  '${settings.shortBreakDuration.round()} min',
+                  settings.shortBreakDuration,
+                  1,
+                  30,
+                  (value) => settings.setShortBreakDuration(value),
+                ),
+                _buildSliderTile(
+                  'Long Break',
+                  '${settings.longBreakDuration.round()} min',
+                  settings.longBreakDuration,
+                  5,
+                  45,
+                  (value) => settings.setLongBreakDuration(value),
+                ),
+                _buildSectionHeader('Session Cycle'),
+                Container(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.black,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: CupertinoListTile(
+                    title: const Text(
+                      'Sessions before long break',
+                      style: TextStyle(
+                        fontSize: 17,
+                        color: CupertinoColors.white,
+                      ),
+                    ),
+                    trailing: GestureDetector(
+                      onTap: () => _showSessionsPicker(context, settings),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            settings.sessionsBeforeLongBreak.toString(),
+                            style: const TextStyle(
+                              fontSize: 17,
+                              color: CupertinoColors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            CupertinoIcons.chevron_down,
+                            size: 16,
+                            color: CupertinoColors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -67,32 +106,59 @@ class TimerSettingsScreen extends StatelessWidget {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(
+        left: 16.0,
+        right: 16.0,
+        top: 32.0,
+        bottom: 10.0,
+      ),
       child: Text(
         title,
         style: const TextStyle(
           fontSize: 20,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          color: CupertinoColors.white,
         ),
       ),
     );
   }
 
-  Widget _buildSliderTile(String title, String value, double sliderValue,
-      double min, double max, Function(double) onChanged) {
+  Widget _buildSliderTile(
+    String title,
+    String value,
+    double sliderValue,
+    double min,
+    double max,
+    Function(double) onChanged,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6,
-        borderRadius: BorderRadius.circular(8),
+        color: CupertinoColors.black,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [Text(title), Text(value)],
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  color: CupertinoColors.white,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 17,
+                  color: CupertinoColors.white,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           CupertinoSlider(
@@ -100,83 +166,81 @@ class TimerSettingsScreen extends StatelessWidget {
             min: min,
             max: max,
             onChanged: onChanged,
+            activeColor: CupertinoColors.white,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSessionCounter(BuildContext context, SettingsProvider settings) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text('Sessions before long break'),
-          GestureDetector(
-            onTap: () => _showSessionPicker(context, settings),
-            child: Row(
-              children: [
-                Text(
-                  settings.sessionsBeforeLongBreak.toString(),
-                  style: const TextStyle(color: CupertinoColors.activeBlue),
-                ),
-                const Icon(
-                  CupertinoIcons.chevron_down,
-                  size: 16,
-                  color: CupertinoColors.activeBlue,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSessionPicker(BuildContext context, SettingsProvider settings) {
+  void _showSessionsPicker(BuildContext context, SettingsProvider settings) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
-        height: 250,
-        color: CupertinoColors.systemBackground,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CupertinoButton(
-                  child: const Text('Done'),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            Expanded(
-              child: CupertinoPicker(
-                itemExtent: 44,
-                onSelectedItemChanged: (index) =>
-                    settings.setSessionsBeforeLongBreak(index + 1),
-                scrollController: FixedExtentScrollController(
-                  initialItem: settings.sessionsBeforeLongBreak - 1,
-                ),
-                children: List.generate(
-                  8,
-                  (index) => Center(
-                    child: Text(
-                      (index + 1).toString(),
-                      style: const TextStyle(fontSize: 20),
+      builder: (BuildContext context) {
+        return Container(
+          height: 250,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          color: CupertinoColors.black,
+          child: Column(
+            children: [
+              Container(
+                height: 50,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: const BoxDecoration(
+                  color: CupertinoColors.black,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: CupertinoColors.white,
+                      width: 0.5,
                     ),
                   ),
                 ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      child: const Text(
+                        'Done',
+                        style: TextStyle(
+                          color: CupertinoColors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+              Expanded(
+                child: CupertinoPicker(
+                  backgroundColor: CupertinoColors.black,
+                  itemExtent: 44,
+                  onSelectedItemChanged: (int index) {
+                    settings.setSessionsBeforeLongBreak(index + 1);
+                  },
+                  scrollController: FixedExtentScrollController(
+                    initialItem: settings.sessionsBeforeLongBreak - 1,
+                  ),
+                  children: List<Widget>.generate(8, (index) {
+                    return Center(
+                      child: Text(
+                        (index + 1).toString(),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: CupertinoColors.white,
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

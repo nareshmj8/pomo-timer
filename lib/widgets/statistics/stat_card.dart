@@ -18,61 +18,85 @@ class StatCard extends StatelessWidget {
     int displayMinutes = totalMinutes % 60;
 
     if (displayHours == 0) {
-      return '${displayMinutes}M';
+      return '${displayMinutes}m';
     } else if (displayMinutes == 0) {
-      return '${displayHours}H';
+      return '${displayHours}h';
     } else {
-      return '${displayHours}H${displayMinutes}M';
+      return '${displayHours}h ${displayMinutes}m';
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    String displayValue =
-        showHours ? _formatDuration(value) : value.round().toString();
-    String displayTitle = title.toUpperCase();
-
-    // Make card height responsive
-    final screenHeight = MediaQuery.of(context).size.height;
-    final cardHeight = screenHeight * 0.12; // 12% of screen height
+    final isDarkMode =
+        MediaQuery.of(context).platformBrightness == Brightness.dark;
 
     return Expanded(
       child: Container(
-        height: cardHeight,
-        margin: const EdgeInsets.symmetric(horizontal: 4.0),
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        margin: const EdgeInsets.all(4.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
         decoration: BoxDecoration(
-          color: CupertinoColors.systemBackground,
-          borderRadius: BorderRadius.circular(10.0),
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          borderRadius: BorderRadius.circular(16.0),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.systemGrey6.withOpacity(0.2),
+              color: isDarkMode
+                  ? CupertinoColors.black.withOpacity(0.2)
+                  : CupertinoColors.systemGrey5.withOpacity(0.5),
               spreadRadius: 0,
-              blurRadius: 4,
-              offset: const Offset(0, 1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
+          border: Border.all(
+            color: isDarkMode
+                ? CupertinoColors.systemGrey6.withOpacity(0.2)
+                : CupertinoColors.systemGrey5.withOpacity(0.3),
+            width: 1.0,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              displayTitle,
-              style: const TextStyle(
+              title.toUpperCase(),
+              style: TextStyle(
                 fontSize: 13,
                 letterSpacing: 0.5,
-                color: CupertinoColors.secondaryLabel,
+                color: CupertinoColors.secondaryLabel.resolveFrom(context),
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 12),
             Text(
-              displayValue,
-              style: const TextStyle(
-                fontSize: 24,
-                color: CupertinoColors.label,
-                fontWeight: FontWeight.w500,
+              showHours ? _formatDuration(value) : value.round().toString(),
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
+                color: CupertinoColors.label.resolveFrom(context),
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: (showHours
+                        ? CupertinoColors.activeBlue
+                        : CupertinoColors.systemGreen)
+                    .withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                showHours ? 'Duration' : 'Sessions',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: (showHours
+                          ? CupertinoColors.activeBlue
+                          : CupertinoColors.systemGreen)
+                      .resolveFrom(context),
+                ),
               ),
             ),
           ],

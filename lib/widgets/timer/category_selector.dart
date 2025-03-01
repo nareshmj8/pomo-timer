@@ -36,7 +36,10 @@ class CategorySelector extends StatelessWidget {
                           settings.setSelectedCategory(category);
                           Navigator.pop(context);
                         },
-                        child: Text(category),
+                        child: Text(
+                          category,
+                          style: TextStyle(color: CupertinoColors.black),
+                        ),
                       ),
                     )
                     .toList(),
@@ -44,7 +47,8 @@ class CategorySelector extends StatelessWidget {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text('Cancel'),
+                  child: const Text('Cancel',
+                      style: TextStyle(color: CupertinoColors.systemRed)),
                 ),
               );
             },

@@ -7,6 +7,8 @@ import 'package:pomo_timer/screens/history_screen.dart'; // Custom HistoryScreen
 import 'package:pomo_timer/screens/settings_screen.dart'; // Custom SettingsScreen widget
 import 'package:pomo_timer/screens/premium_screen.dart'; // Custom PremiumScreen widget
 import 'package:animations/animations.dart'; // Package for custom animations (e.g., PageTransitionSwitcher)
+import 'package:provider/provider.dart';
+import 'package:pomo_timer/providers/settings_provider.dart';
 
 // Defining HomeScreen as a StatefulWidget since it manages state (e.g., selected tab index)
 class HomeScreen extends StatefulWidget {
@@ -59,96 +61,131 @@ class _HomeScreenState extends State<HomeScreen>
   // Builds the UI for the HomeScreen
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Main content area with animated transitions between screens
-      body: PageTransitionSwitcher(
-        // Defines how the transition between screens looks
-        transitionBuilder: (child, animation, secondaryAnimation) {
-          return SlideTransition(
-            // Animates the new screen sliding in from left or right
-            position: animation.drive(
-              Tween<Offset>(
-                // Start position depends on whether we're moving forward or backward in tabs
-                begin:
-                    Offset(_previousIndex < _selectedIndex ? 1.0 : -1.0, 0.0),
-                end: Offset.zero, // Ends at the center (fully visible)
-              ).chain(
-                  CurveTween(curve: Curves.easeInOut)), // Smooth easing curve
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) {
+        return Scaffold(
+          backgroundColor: settings.backgroundColor,
+          body: PageTransitionSwitcher(
+            transitionBuilder: (child, animation, secondaryAnimation) {
+              return SlideTransition(
+                position: animation.drive(
+                  Tween<Offset>(
+                    begin: Offset(
+                        _previousIndex < _selectedIndex ? 1.0 : -1.0, 0.0),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeInOut)),
+                ),
+                child: SlideTransition(
+                  position: secondaryAnimation.drive(
+                    Tween<Offset>(
+                      begin: Offset.zero,
+                      end: Offset(
+                          _previousIndex < _selectedIndex ? -1.0 : 1.0, 0.0),
+                    ).chain(CurveTween(curve: Curves.easeInOut)),
+                  ),
+                  child: child,
+                ),
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey<int>(_selectedIndex),
+              child: _screens[_selectedIndex],
             ),
-            // Nested SlideTransition for the outgoing screen
-            child: SlideTransition(
-              // Animates the old screen sliding out
-              position: secondaryAnimation.drive(
-                Tween<Offset>(
-                  begin: Offset.zero, // Starts at center
-                  // Exits to left or right based on direction
-                  end:
-                      Offset(_previousIndex < _selectedIndex ? -1.0 : 1.0, 0.0),
-                ).chain(
-                    CurveTween(curve: Curves.easeInOut)), // Smooth easing curve
+          ),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: settings.selectedTheme == 'Light'
+                      ? CupertinoColors.separator
+                      : settings.backgroundColor
+                          .withAlpha(77), // 0.3 * 255 ≈ 77
+                  width: 0.5,
+                ),
               ),
-              child: child, // The actual screen widget being transitioned
             ),
-          );
-        },
-        // The current screen to display, with a unique key to trigger transitions
-        child: KeyedSubtree(
-          key: ValueKey<int>(
-              _selectedIndex), // Key changes when index changes, triggering animation
-          child: _screens[_selectedIndex], // Displays the selected screen
-        ),
-      ),
-      // Bottom navigation bar for switching between screens
-      bottomNavigationBar: NavigationBar(
-        animationDuration:
-            const Duration(milliseconds: 600), // Animation for selection
-        selectedIndex: _selectedIndex, // Highlights the current tab
-        // Called when a new destination (tab) is selected
-        onDestinationSelected: (index) {
-          setState(() {
-            // Updates the state to rebuild the UI
-            _previousIndex =
-                _selectedIndex; // Stores the old index for animation
-            _selectedIndex = index; // Updates to the new index
-            _animationController.forward(
-                from: 0); // Starts the animation from the beginning
-          });
-        },
-        // List of navigation tabs with icons and labels
-        destinations: [
-          NavigationDestination(
-            // Icon adapts to platform (iOS uses Cupertino, Android uses Material)
-            icon: Icon(Theme.of(context).platform == TargetPlatform.iOS
-                ? CupertinoIcons.timer
-                : Icons.timer),
-            label: 'Timer', // Label below the icon
+            child: NavigationBar(
+              backgroundColor: settings.selectedTheme == 'Light'
+                  ? CupertinoColors.systemBackground
+                  : settings.backgroundColor,
+              surfaceTintColor: Colors.transparent,
+              indicatorColor: settings.selectedTheme == 'Light'
+                  ? CupertinoColors.systemFill
+                  : settings.backgroundColor.withAlpha(77),
+              shadowColor: Colors.transparent,
+              height: 65,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              animationDuration: const Duration(milliseconds: 400),
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _previousIndex = _selectedIndex;
+                  _selectedIndex = index;
+                  _animationController.forward(from: 0);
+                });
+              },
+              destinations: [
+                NavigationDestination(
+                  icon: Icon(
+                    CupertinoIcons.timer,
+                    color: _selectedIndex == 0
+                        ? CupertinoColors.activeBlue
+                        : settings.selectedTheme == 'Light'
+                            ? CupertinoColors.inactiveGray
+                            : settings.textColor
+                                .withAlpha(204), // 0.8 * 255 ≈ 204
+                  ),
+                  label: 'Timer',
+                ),
+                NavigationDestination(
+                  icon: Icon(
+                    CupertinoIcons.graph_square,
+                    color: _selectedIndex == 1
+                        ? CupertinoColors.activeBlue
+                        : settings.selectedTheme == 'Light'
+                            ? CupertinoColors.inactiveGray
+                            : settings.textColor.withAlpha(204),
+                  ),
+                  label: 'Statistics',
+                ),
+                NavigationDestination(
+                  icon: Icon(
+                    CupertinoIcons.clock,
+                    color: _selectedIndex == 2
+                        ? CupertinoColors.activeBlue
+                        : settings.selectedTheme == 'Light'
+                            ? CupertinoColors.inactiveGray
+                            : settings.textColor.withAlpha(204),
+                  ),
+                  label: 'History',
+                ),
+                NavigationDestination(
+                  icon: Icon(
+                    CupertinoIcons.settings,
+                    color: _selectedIndex == 3
+                        ? CupertinoColors.activeBlue
+                        : settings.selectedTheme == 'Light'
+                            ? CupertinoColors.inactiveGray
+                            : settings.textColor.withAlpha(204),
+                  ),
+                  label: 'Settings',
+                ),
+                NavigationDestination(
+                  icon: Icon(
+                    CupertinoIcons.star,
+                    color: _selectedIndex == 4
+                        ? CupertinoColors.activeBlue
+                        : settings.selectedTheme == 'Light'
+                            ? CupertinoColors.inactiveGray
+                            : settings.textColor.withAlpha(204),
+                  ),
+                  label: 'Premium',
+                ),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Theme.of(context).platform == TargetPlatform.iOS
-                ? CupertinoIcons.graph_square
-                : Icons.bar_chart),
-            label: 'Statistics',
-          ),
-          NavigationDestination(
-            icon: Icon(Theme.of(context).platform == TargetPlatform.iOS
-                ? CupertinoIcons.clock
-                : Icons.history),
-            label: 'History',
-          ),
-          NavigationDestination(
-            icon: Icon(Theme.of(context).platform == TargetPlatform.iOS
-                ? CupertinoIcons.settings
-                : Icons.settings),
-            label: 'Settings',
-          ),
-          NavigationDestination(
-            icon: Icon(Theme.of(context).platform == TargetPlatform.iOS
-                ? CupertinoIcons.star
-                : Icons.star),
-            label: 'Premium',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

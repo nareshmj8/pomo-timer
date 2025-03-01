@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
-import '../providers/theme_provider.dart';
 import '../widgets/statistics/stat_card.dart';
 import '../widgets/statistics/chart_card.dart';
 import '../models/chart_data.dart';
@@ -177,24 +176,24 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         final dailyData = settings.getDailyData(selectedCategory);
         final weeklyData = settings.getWeeklyData(selectedCategory);
         final monthlyData = settings.getMonthlyData(selectedCategory);
-        final stats = settings.getCategoryStats(selectedCategory);
+        final stats =
+            settings.getCategoryStats(selectedCategory, showHours: showHours);
 
         return CupertinoPageScaffold(
-          backgroundColor: Provider.of<ThemeProvider>(context).backgroundColor,
+          backgroundColor: settings.backgroundColor,
           navigationBar: CupertinoNavigationBar(
             middle: Text(
               'Statistics',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: Provider.of<ThemeProvider>(context).textColor,
+                color: settings.textColor,
               ),
             ),
-            backgroundColor:
-                Provider.of<ThemeProvider>(context).backgroundColor,
+            backgroundColor: settings.backgroundColor,
             border: Border(
               bottom: BorderSide(
-                color: CupertinoColors.separator,
+                color: CupertinoColors.separator.withOpacity(0.3),
                 width: 0.5,
               ),
             ),
@@ -206,9 +205,39 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 children: [
                   _buildCategorySelector(),
                   _buildToggleButtons(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Text(
+                      'Overview',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: settings.textColor,
+                      ),
+                    ),
+                  ),
                   _buildStatCards(stats),
-                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 16.0,
+                      right: 16.0,
+                      top: 24.0,
+                      bottom: 8.0,
+                    ),
+                    child: Text(
+                      'Trends',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: settings.textColor,
+                      ),
+                    ),
+                  ),
                   _buildCharts(dailyData, weeklyData, monthlyData),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -224,11 +253,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
+          const Text(
             'Category:',
             style: TextStyle(
               fontSize: 16,
-              color: Provider.of<ThemeProvider>(context).textColor,
+              color: CupertinoColors.black,
             ),
           ),
           CupertinoButton(
@@ -238,11 +267,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               children: [
                 Text(
                   selectedCategory,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
-                    color: Provider.of<ThemeProvider>(context)
-                        .currentTheme
-                        .primaryColor,
+                    color: CupertinoColors.activeBlue,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -340,40 +367,93 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _buildCharts(List<ChartData> dailyData, List<ChartData> weeklyData,
       List<ChartData> monthlyData) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalPadding = screenWidth * 0.04; // 4% of screen width
+    final horizontalPadding = screenWidth * 0.04;
 
-    return Padding(
+    // Reverse the data lists to show latest on the right
+    final reversedDailyData = dailyData.reversed.toList();
+    final reversedWeeklyData = weeklyData.reversed.toList();
+    final reversedMonthlyData = monthlyData.reversed.toList();
+
+    // Three-letter day names for daily chart
+    final List<String> dayNames =
+        ['Sun', 'Sat', 'Fri', 'Thu', 'Wed', 'Tue', 'Mon'].reversed.toList();
+
+    return Container(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Column(
         children: [
-          ChartCard(
-            title: 'Daily',
-            data: dailyData
-                .map((d) => showHours ? d.hours : d.sessions.toDouble())
-                .toList(),
-            titles: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-            showHours: showHours,
-            isLatest: (index) => dailyData[index].isCurrentPeriod,
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: CupertinoColors.systemGrey.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ChartCard(
+              title: 'Daily',
+              data: reversedDailyData
+                  .map((d) => showHours ? d.hours : d.sessions.toDouble())
+                  .toList(),
+              titles: dayNames,
+              showHours: showHours,
+              isLatest: (index) => reversedDailyData[index].isCurrentPeriod,
+              emptyBarColor: CupertinoColors.systemGrey.withOpacity(0.1),
+              showEmptyBars: true,
+            ),
           ),
-          const SizedBox(height: 8),
-          ChartCard(
-            title: 'Weekly',
-            data: weeklyData
-                .map((d) => showHours ? d.hours : d.sessions.toDouble())
-                .toList(),
-            titles: List.generate(7, (i) => 'W${7 - i}'),
-            showHours: showHours,
-            isLatest: (index) => weeklyData[index].isCurrentPeriod,
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: CupertinoColors.systemGrey.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ChartCard(
+              title: 'Weekly',
+              data: reversedWeeklyData
+                  .map((d) => showHours ? d.hours : d.sessions.toDouble())
+                  .toList(),
+              titles: List.generate(7, (i) => 'W${i + 1}'),
+              showHours: showHours,
+              isLatest: (index) => reversedWeeklyData[index].isCurrentPeriod,
+              emptyBarColor: CupertinoColors.systemGrey.withOpacity(0.1),
+              showEmptyBars: true,
+            ),
           ),
-          const SizedBox(height: 8),
-          ChartCard(
-            title: 'Monthly',
-            data: monthlyData
-                .map((d) => showHours ? d.hours : d.sessions.toDouble())
-                .toList(),
-            titles: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-            showHours: showHours,
-            isLatest: (index) => monthlyData[index].isCurrentPeriod,
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: CupertinoColors.systemGrey.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ChartCard(
+              title: 'Monthly',
+              data: reversedMonthlyData
+                  .map((d) => showHours ? d.hours : d.sessions.toDouble())
+                  .toList(),
+              titles: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']
+                  .reversed
+                  .toList(),
+              showHours: showHours,
+              isLatest: (index) => reversedMonthlyData[index].isCurrentPeriod,
+              emptyBarColor: CupertinoColors.systemGrey.withOpacity(0.1),
+              showEmptyBars: true,
+            ),
           ),
           const SizedBox(height: 16),
         ],

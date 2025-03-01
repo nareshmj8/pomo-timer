@@ -7,6 +7,8 @@ class ChartCard extends StatelessWidget {
   final List<String> titles;
   final bool showHours;
   final bool Function(int) isLatest;
+  final Color? emptyBarColor;
+  final bool showEmptyBars;
 
   const ChartCard({
     super.key,
@@ -15,10 +17,28 @@ class ChartCard extends StatelessWidget {
     required this.titles,
     required this.showHours,
     required this.isLatest,
+    this.emptyBarColor,
+    this.showEmptyBars = false,
   });
 
-  double get maxY =>
-      (data.reduce((a, b) => a > b ? a : b) * 1.2).ceilToDouble();
+  String _formatDuration(double hours) {
+    int totalMinutes = (hours * 60).round();
+    int displayHours = totalMinutes ~/ 60;
+    int displayMinutes = totalMinutes % 60;
+
+    if (displayHours == 0) {
+      return '${displayMinutes}M';
+    } else if (displayMinutes == 0) {
+      return '${displayHours}H';
+    } else {
+      return '${displayHours}H${displayMinutes}M';
+    }
+  }
+
+  double get maxY {
+    if (data.isEmpty) return 5.0;
+    return (data.reduce((a, b) => a > b ? a : b) * 1.2).ceilToDouble();
+  }
 
   double calculateInterval(double maxY) {
     if (maxY <= 5) return 1;
@@ -28,8 +48,8 @@ class ChartCard extends StatelessWidget {
 
   LinearGradient get barGradient => LinearGradient(
         colors: [
-          CupertinoColors.systemBlue,
-          CupertinoColors.systemBlue.withOpacity(0.7),
+          CupertinoColors.systemBlue.withOpacity(0.8),
+          CupertinoColors.systemBlue.withOpacity(0.5),
         ],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
@@ -38,60 +58,89 @@ class ChartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: CupertinoColors.systemBackground,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: CupertinoColors.systemGrey6.withOpacity(0.5),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
+            color: CupertinoColors.systemGrey6.withOpacity(0.2),
             spreadRadius: 0,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title.toUpperCase(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: CupertinoColors.label,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey6,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  showHours ? 'Duration' : 'Sessions',
                   style: const TextStyle(
                     fontSize: 13,
-                    letterSpacing: 0.5,
+                    fontWeight: FontWeight.w500,
                     color: CupertinoColors.secondaryLabel,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemBlue,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      showHours ? 'Hours' : 'Sessions',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: CupertinoColors.secondaryLabel,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGreen,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'Current',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: CupertinoColors.secondaryLabel,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  gradient: barGradient,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'Previous',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: CupertinoColors.secondaryLabel,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           SizedBox(
             height: 180,
             child: BarChart(
@@ -99,21 +148,25 @@ class ChartCard extends StatelessWidget {
                 alignment: BarChartAlignment.spaceAround,
                 maxY: maxY,
                 barGroups: data.asMap().entries.map((entry) {
+                  final value = entry.value;
+                  final bool isEmpty = value == 0;
+
                   return BarChartGroupData(
                     x: entry.key,
                     barRods: [
                       BarChartRodData(
-                        toY: entry.value,
-                        gradient: isLatest(entry.key) ? null : barGradient,
-                        color: isLatest(entry.key)
-                            ? CupertinoColors.systemGreen
-                            : null,
-                        width: 8,
-                        borderRadius: BorderRadius.circular(4),
-                        backDrawRodData: BackgroundBarChartRodData(
-                          show: true,
-                          toY: maxY,
-                          color: CupertinoColors.systemGrey6,
+                        toY: isEmpty && showEmptyBars ? maxY * 0.1 : value,
+                        gradient: isEmpty
+                            ? null
+                            : (isLatest(entry.key) ? null : barGradient),
+                        color: isEmpty
+                            ? emptyBarColor
+                            : (isLatest(entry.key)
+                                ? CupertinoColors.systemGreen
+                                : null),
+                        width: 10,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(4),
                         ),
                       ),
                     ],
@@ -125,7 +178,7 @@ class ChartCard extends StatelessWidget {
                   horizontalInterval: 1,
                   getDrawingHorizontalLine: (value) {
                     return FlLine(
-                      color: CupertinoColors.separator.withOpacity(0.3),
+                      color: CupertinoColors.separator.withOpacity(0.2),
                       strokeWidth: 0.5,
                       dashArray: [4, 4],
                     );
@@ -160,14 +213,14 @@ class ChartCard extends StatelessWidget {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 32,
+                      reservedSize: 48,
                       interval: calculateInterval(maxY),
                       getTitlesWidget: (value, meta) {
                         return Text(
                           showHours
-                              ? value.toStringAsFixed(1)
-                              : value.toInt().toString(),
-                          style: TextStyle(
+                              ? _formatDuration(value)
+                              : value.toStringAsFixed(1),
+                          style: const TextStyle(
                             color: CupertinoColors.secondaryLabel,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
@@ -180,10 +233,21 @@ class ChartCard extends StatelessWidget {
                 barTouchData: BarTouchData(
                   enabled: true,
                   touchTooltipData: BarTouchTooltipData(
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    tooltipPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    tooltipMargin: 8,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      if (rod.toY == 0 && showEmptyBars) return null;
+                      final value = showHours
+                          ? _formatDuration(rod.toY)
+                          : rod.toY.toStringAsFixed(1);
                       return BarTooltipItem(
-                        '${showHours ? 'Hours: ' : 'Sessions: '}${rod.toY.toStringAsFixed(showHours ? 1 : 0)}',
-                        TextStyle(
+                        '${titles[group.x]} • ${showHours ? 'Duration: ' : 'Sessions: '}$value',
+                        const TextStyle(
                           color: CupertinoColors.label,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,

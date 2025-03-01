@@ -64,7 +64,7 @@ class StatisticsService {
       final dayEnd = dayStart.add(const Duration(days: 1));
 
       double hours = 0;
-      int sessions = 0;
+      double sessions = 0;
 
       for (var entry in history) {
         if (category != 'All Categories' && entry.category != category) {
@@ -73,7 +73,8 @@ class StatisticsService {
         if (entry.timestamp.isAfter(dayStart) &&
             entry.timestamp.isBefore(dayEnd)) {
           hours += _minutesToHours(entry.duration);
-          sessions += (entry.duration / defaultSessionMinutes).floor();
+          sessions +=
+              (entry.duration / defaultSessionMinutes).floor().toDouble();
         }
       }
 
@@ -97,7 +98,7 @@ class StatisticsService {
       final weekEnd = weekStart.add(const Duration(days: 7));
 
       double hours = 0;
-      int sessions = 0;
+      double sessions = 0;
 
       for (var entry in history) {
         if (category != 'All Categories' && entry.category != category) {
@@ -106,7 +107,8 @@ class StatisticsService {
         if (entry.timestamp.isAfter(weekStart) &&
             entry.timestamp.isBefore(weekEnd)) {
           hours += _minutesToHours(entry.duration);
-          sessions += (entry.duration / defaultSessionMinutes).floor();
+          sessions +=
+              (entry.duration / defaultSessionMinutes).floor().toDouble();
         }
       }
 
@@ -130,7 +132,7 @@ class StatisticsService {
       final monthEnd = DateTime(now.year, now.month - i + 1, 0);
 
       double hours = 0;
-      int sessions = 0;
+      double sessions = 0;
 
       for (var entry in history) {
         if (category != 'All Categories' && entry.category != category) {
@@ -139,7 +141,8 @@ class StatisticsService {
         if (entry.timestamp.isAfter(monthStart) &&
             entry.timestamp.isBefore(monthEnd)) {
           hours += _minutesToHours(entry.duration);
-          sessions += (entry.duration / defaultSessionMinutes).floor();
+          sessions +=
+              (entry.duration / defaultSessionMinutes).floor().toDouble();
         }
       }
 

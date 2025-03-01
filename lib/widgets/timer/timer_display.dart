@@ -22,8 +22,20 @@ class TimerDisplay extends StatelessWidget {
     }
   }
 
+  Color _getContrastingColor(Color backgroundColor) {
+    return backgroundColor.computeLuminance() > 0.5
+        ? CupertinoColors.black
+        : CupertinoColors.white;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final contrastingColor = _getContrastingColor(settings.backgroundColor);
+    final progressBackgroundColor = contrastingColor.withAlpha(26);
+    final progressColor = settings.isBreak
+        ? CupertinoColors.activeGreen
+        : CupertinoColors.activeBlue;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -31,9 +43,11 @@ class TimerDisplay extends StatelessWidget {
           settings.isBreak
               ? (settings.shouldTakeLongBreak() ? 'Long Break' : 'Short Break')
               : settings.selectedCategory,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
-            color: CupertinoColors.systemGrey,
+            fontWeight: FontWeight.w500,
+            color: contrastingColor.withAlpha(153),
+            letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 16),
@@ -45,19 +59,19 @@ class TimerDisplay extends StatelessWidget {
               height: 300,
               child: CircularProgressIndicator(
                 value: settings.progress,
-                strokeWidth: 8,
-                backgroundColor: CupertinoColors.systemGrey6,
-                color: settings.isBreak
-                    ? CupertinoColors.systemGreen
-                    : CupertinoColors.activeBlue,
+                strokeWidth: 10,
+                backgroundColor: progressBackgroundColor,
+                color: progressColor,
+                strokeCap: StrokeCap.round,
               ),
             ),
             Text(
               _formatTime(settings.remainingTime),
-              style: const TextStyle(
-                fontSize: 64,
+              style: TextStyle(
+                fontSize: 68,
                 fontWeight: FontWeight.w300,
-                color: CupertinoColors.label,
+                color: contrastingColor,
+                letterSpacing: -1.0,
               ),
             ),
           ],
@@ -75,7 +89,9 @@ class TimerDisplay extends StatelessWidget {
                       ? CupertinoIcons.circle_fill
                       : CupertinoIcons.circle,
                   size: 12,
-                  color: CupertinoColors.activeBlue,
+                  color: index < settings.completedSessions
+                      ? progressColor
+                      : contrastingColor.withAlpha(77),
                 ),
               ),
             ),
