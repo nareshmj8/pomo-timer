@@ -55,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             carouselController:
                 _controller, // Links to controller for programmatic navigation
             itemBuilder: (context, index, realIndex) {
-              // Builds each slide’s content
+              // Builds each slide's content
               return Padding(
                 padding: EdgeInsets.symmetric(
                     horizontal:
@@ -190,8 +190,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: () {
                       // Move to next slide with animation
                       _controller.nextPage(
-                        duration:
-                            Duration(milliseconds: 300), // 300ms transition
+                        duration: const Duration(
+                            milliseconds: 300), // 300ms transition
                         curve: Curves.linear, // Linear animation curve
                       );
                     },

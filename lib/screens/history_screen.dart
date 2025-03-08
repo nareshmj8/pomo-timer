@@ -33,34 +33,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Consumer<SettingsProvider>(
       builder: (context, settings, child) {
         final entries = settings.history.reversed.toList(); // Show newest first
-        final contrastingTextColor =
-            _getContrastingTextColor(settings.backgroundColor);
 
-        // CupertinoPageScaffold provides an iOS-style page structure
         return CupertinoPageScaffold(
           backgroundColor: settings.backgroundColor,
-          // Navigation bar at the top with a title
           navigationBar: CupertinoNavigationBar(
             middle: Text(
               'History',
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: contrastingTextColor,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: settings.textColor,
+                letterSpacing: -0.3,
               ),
             ),
-            backgroundColor: settings.backgroundColor.withOpacity(0.9),
-            border: null,
+            backgroundColor: settings.backgroundColor.withOpacity(0.85),
+            border: Border(
+              bottom: BorderSide(
+                color: settings.separatorColor,
+                width: 0.5,
+              ),
+            ),
           ),
-          // SafeArea ensures content avoids system UI overlaps (e.g., notch, status bar)
           child: SafeArea(
             child: Column(
-              // Arrange children vertically
               children: [
-                // Search bar section
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 12.0),
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
                   child: CupertinoSearchTextField(
                     onChanged: (value) {
                       setState(() {
@@ -68,97 +69,133 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       });
                     },
                     placeholder: 'Search by date or category',
-                    backgroundColor: CupertinoColors.white,
-                    style: const TextStyle(color: CupertinoColors.black),
-                    placeholderStyle: const TextStyle(
-                      color: CupertinoColors.systemGrey,
+                    backgroundColor: settings.listTileBackgroundColor,
+                    style: TextStyle(color: settings.textColor),
+                    placeholderStyle: TextStyle(
+                      color: settings.secondaryTextColor,
                     ),
                   ),
                 ),
-                // List section that takes up remaining space
                 Expanded(
-                  // ListView.builder efficiently builds list items on demand
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    itemCount: entries.length, // Total number of entries
-                    itemBuilder: (context, index) {
-                      final entry = entries[index]; // Get the current entry
-                      final formattedTime = _formatDateTime(entry.timestamp);
-
-                      // Filter: Show entry if category or timestamp matches search query
-                      if (entry.category.toLowerCase().contains(searchQuery) ||
-                          formattedTime.toLowerCase().contains(searchQuery)) {
-                        // Styling and layout for each matching entry
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: CupertinoColors.systemGrey
-                                      .withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
+                  child: entries.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                CupertinoIcons.clock,
+                                size: 48,
+                                color: settings.secondaryTextColor,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No history yet',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                  color: settings.textColor,
+                                  letterSpacing: -0.3,
                                 ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      entry.category,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: CupertinoColors.black,
-                                      ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Complete sessions to see them here',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: settings.secondaryTextColor,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          itemCount: entries.length,
+                          itemBuilder: (context, index) {
+                            final entry = entries[index];
+                            final formattedTime =
+                                _formatDateTime(entry.timestamp);
+
+                            if (entry.category
+                                    .toLowerCase()
+                                    .contains(searchQuery) ||
+                                formattedTime
+                                    .toLowerCase()
+                                    .contains(searchQuery)) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: settings.listTileBackgroundColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: settings.separatorColor,
+                                      width: 0.5,
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            entry.category,
+                                            style: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w600,
+                                              color: settings.textColor,
+                                              letterSpacing: -0.3,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: settings.isDarkTheme
+                                                  ? const Color(0xFF2C2C2E)
+                                                  : CupertinoColors.systemGrey6,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              '${entry.duration} min',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: settings.isDarkTheme
+                                                    ? CupertinoColors.systemGrey
+                                                        .withOpacity(0.9)
+                                                    : CupertinoColors
+                                                        .systemGrey.darkColor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: CupertinoColors.systemGrey6,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        '${entry.duration} min',
-                                        style: const TextStyle(
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        formattedTime,
+                                        style: TextStyle(
                                           fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: CupertinoColors.black,
+                                          color: settings.secondaryTextColor,
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  formattedTime,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color:
-                                        CupertinoColors.black.withOpacity(0.7),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        );
-                      } else {
-                        // If entry doesn't match search, return an empty widget (hides it)
-                        return const SizedBox.shrink();
-                      }
-                    },
-                  ),
+                              );
+                            } else {
+                              return const SizedBox.shrink();
+                            }
+                          },
+                        ),
                 ),
               ],
             ),

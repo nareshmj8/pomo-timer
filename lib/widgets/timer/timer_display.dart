@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show CircularProgressIndicator;
 import '../../providers/settings_provider.dart';
 
 class TimerDisplay extends StatelessWidget {
@@ -16,87 +15,112 @@ class TimerDisplay extends StatelessWidget {
     final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
 
     if (hours > 0) {
-      return '$hours:$minutes:$seconds';
+      return '$hours:$minutes:$seconds'.padLeft(8, ' ');
     } else {
-      return '$minutes:$seconds';
+      return '$minutes:$seconds'.padLeft(5, ' ');
     }
   }
 
-  Color _getContrastingColor(Color backgroundColor) {
-    return backgroundColor.computeLuminance() > 0.5
-        ? CupertinoColors.black
-        : CupertinoColors.white;
+  Color _getProgressColor(bool isBreak) {
+    if (isBreak) {
+      return CupertinoColors.activeGreen;
+    } else {
+      return CupertinoColors.activeBlue;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final contrastingColor = _getContrastingColor(settings.backgroundColor);
-    final progressBackgroundColor = contrastingColor.withAlpha(26);
-    final progressColor = settings.isBreak
-        ? CupertinoColors.activeGreen
-        : CupertinoColors.activeBlue;
+    final progressColor = _getProgressColor(settings.isBreak);
+    final mediaQuery = MediaQuery.of(context);
+    final isSmallScreen = mediaQuery.size.width < 375;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          settings.isBreak
-              ? (settings.shouldTakeLongBreak() ? 'Long Break' : 'Short Break')
-              : settings.selectedCategory,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: contrastingColor.withAlpha(153),
-            letterSpacing: -0.5,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Stack(
-          alignment: Alignment.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final timerFontSize = isSmallScreen ? 64.0 : 72.0;
+        final labelFontSize = isSmallScreen ? 18.0 : 20.0;
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 300,
-              height: 300,
-              child: CircularProgressIndicator(
-                value: settings.progress,
-                strokeWidth: 10,
-                backgroundColor: progressBackgroundColor,
-                color: progressColor,
-                strokeCap: StrokeCap.round,
-              ),
-            ),
-            Text(
-              _formatTime(settings.remainingTime),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
               style: TextStyle(
-                fontSize: 68,
-                fontWeight: FontWeight.w300,
-                color: contrastingColor,
-                letterSpacing: -1.0,
+                fontSize: labelFontSize,
+                fontWeight: FontWeight.w600,
+                color: settings.textColor.withOpacity(0.8),
+                letterSpacing: -0.5,
+              ),
+              child: Text(
+                settings.isBreak
+                    ? (settings.shouldTakeLongBreak()
+                        ? 'Long Break'
+                        : 'Short Break')
+                    : settings.selectedCategory,
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        if (!settings.isBreak)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              settings.sessionsBeforeLongBreak,
-              (index) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: Icon(
-                  index < settings.completedSessions
-                      ? CupertinoIcons.circle_fill
-                      : CupertinoIcons.circle,
-                  size: 12,
-                  color: index < settings.completedSessions
-                      ? progressColor
-                      : contrastingColor.withAlpha(77),
+            const SizedBox(height: 16),
+            Container(
+              width: constraints.maxWidth,
+              alignment: Alignment.center,
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontSize: timerFontSize,
+                  fontWeight: FontWeight.w400,
+                  color: settings.textColor,
+                  letterSpacing: 0,
+                  fontFamily: 'Menlo',
+                  fontFeatures: const [
+                    FontFeature.tabularFigures(),
+                  ],
+                ),
+                child: Text(
+                  _formatTime(settings.remainingTime),
                 ),
               ),
             ),
-          ),
-      ],
+            const SizedBox(height: 24),
+            if (!settings.isBreak)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                decoration: BoxDecoration(
+                  color: settings.secondaryBackgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: settings.separatorColor.withOpacity(0.1),
+                    width: 1.0,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(
+                    settings.sessionsBeforeLongBreak,
+                    (index) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: Icon(
+                          index < settings.completedSessions
+                              ? CupertinoIcons.circle_fill
+                              : CupertinoIcons.circle,
+                          key: ValueKey(index < settings.completedSessions),
+                          size: 12,
+                          color: index < settings.completedSessions
+                              ? progressColor
+                              : settings.secondaryTextColor.withOpacity(0.3),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

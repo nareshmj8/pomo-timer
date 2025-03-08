@@ -26,13 +26,34 @@ class _TimerScreenState extends State<TimerScreen> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
-        title: const Text('Session Complete!'),
-        content: Text(isLongBreakDue
-            ? 'Great job! Would you like to take a long break?'
-            : 'Would you like to take a short break?'),
+        title: Text(
+          'Session Complete!',
+          style: TextStyle(
+            color: settings.textColor,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.5,
+          ),
+        ),
+        content: Text(
+          isLongBreakDue
+              ? 'Great job! Would you like to take a long break?'
+              : 'Would you like to take a short break?',
+          style: TextStyle(
+            color: settings.textColor.withOpacity(0.8),
+            fontSize: 13,
+            letterSpacing: -0.2,
+          ),
+        ),
         actions: [
           CupertinoDialogAction(
-            child: const Text('Skip'),
+            child: Text(
+              'Skip',
+              style: TextStyle(
+                color: settings.textColor,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
             onPressed: () {
               Navigator.pop(context);
               setState(() {
@@ -44,7 +65,13 @@ class _TimerScreenState extends State<TimerScreen> {
           ),
           CupertinoDialogAction(
             isDefaultAction: true,
-            child: const Text('Start Break'),
+            child: Text(
+              'Start Break',
+              style: const TextStyle(
+                color: CupertinoColors.activeBlue,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             onPressed: () {
               Navigator.pop(context);
               setState(() {
@@ -75,12 +102,21 @@ class _TimerScreenState extends State<TimerScreen> {
 
         return CupertinoPageScaffold(
           backgroundColor: settings.backgroundColor,
-          navigationBar: const CupertinoNavigationBar(
+          navigationBar: CupertinoNavigationBar(
+            backgroundColor: settings.backgroundColor,
+            border: Border(
+              bottom: BorderSide(
+                color: settings.separatorColor.withOpacity(0.3),
+                width: 0.5,
+              ),
+            ),
             middle: Text(
               'Home',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
+                color: settings.textColor,
+                letterSpacing: -0.5,
               ),
             ),
           ),

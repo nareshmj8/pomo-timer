@@ -76,20 +76,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 (value) => settings.setLongBreakDuration(value),
               ),
               _buildSectionHeader('Session Cycle'),
-              Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.secondarySystemGroupedBackground,
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              _buildListTileContainer(
                 child: CupertinoListTile(
-                  title: const Text(
+                  title: Text(
                     'Sessions before long break',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: CupertinoColors.black,
+                      color: settings.listTileTextColor,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -100,17 +94,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         Text(
                           settings.sessionsBeforeLongBreak.toString(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
-                            color: CupertinoColors.systemGrey,
+                            color: settings.secondaryTextColor,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(
+                        Icon(
                           CupertinoIcons.chevron_down,
                           size: 16,
-                          color: CupertinoColors.activeBlue,
+                          color: settings.isDarkTheme
+                              ? CupertinoColors.activeBlue.darkColor
+                              : CupertinoColors.activeBlue,
                         ),
                       ],
                     ),
@@ -127,91 +123,154 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _buildThemeTile(
                       'Light',
-                      CupertinoColors.systemBackground,
+                      CupertinoColors.white,
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          CupertinoColors.systemBackground,
-                          CupertinoColors.secondarySystemBackground,
+                          CupertinoColors.white,
+                          CupertinoColors.systemGrey6,
                         ],
                       ),
+                      textColor: CupertinoColors.label,
+                      boxShadow: [
+                        BoxShadow(
+                          color: CupertinoColors.systemGrey5.withOpacity(0.5),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
                     ),
-                    _buildThemeTile('Citrus Orange', const Color(0xFFFFD9A6)),
-                    _buildThemeTile('Rose Quartz', const Color(0xFFF8C8D7)),
-                    _buildThemeTile('Seafoam Green', const Color(0xFFD9F2E6)),
-                    _buildThemeTile('Lavender Mist', const Color(0xFFE6D9F2)),
+                    _buildThemeTile(
+                      'Dark',
+                      const Color(0xFF1C1C1E),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1C1C1E),
+                          const Color(0xFF2C2C2E),
+                        ],
+                      ),
+                      textColor: CupertinoColors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1C1C1E).withOpacity(0.3),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    _buildThemeTile(
+                      'Citrus Orange',
+                      const Color(0xFFFFD9A6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFFD9A6).withOpacity(0.3),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    _buildThemeTile(
+                      'Rose Quartz',
+                      const Color(0xFFF8C8D7),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFF8C8D7).withOpacity(0.3),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    _buildThemeTile(
+                      'Seafoam Green',
+                      const Color(0xFFD9F2E6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD9F2E6).withOpacity(0.3),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    _buildThemeTile(
+                      'Lavender Mist',
+                      const Color(0xFFE6D9F2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE6D9F2).withOpacity(0.3),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
               _buildSectionHeader('Notifications'),
-              Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.secondarySystemGroupedBackground,
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              _buildListTileContainer(
                 child: CupertinoListTile(
-                  title: const Text(
+                  title: Text(
                     'Sound',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: CupertinoColors.black,
+                      color: settings.listTileTextColor,
                       letterSpacing: -0.3,
                     ),
                   ),
                   trailing: CupertinoSwitch(
                     value: settings.soundEnabled,
                     onChanged: (value) => settings.setSoundEnabled(value),
+                    activeColor: settings.isDarkTheme
+                        ? CupertinoColors.activeBlue.darkColor
+                        : CupertinoColors.activeBlue,
                   ),
                 ),
               ),
               _buildSectionHeader('Data'),
-              Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.secondarySystemGroupedBackground,
-                  borderRadius: BorderRadius.circular(10),
-                ),
+              _buildListTileContainer(
                 child: Column(
                   children: [
                     CupertinoListTile(
-                      title: const Text(
+                      title: Text(
                         'Export Data',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: CupertinoColors.black,
+                          color: settings.listTileTextColor,
                           letterSpacing: -0.3,
                         ),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         CupertinoIcons.cloud_upload,
-                        color: CupertinoColors.activeBlue,
+                        color: settings.isDarkTheme
+                            ? CupertinoColors.activeBlue.darkColor
+                            : CupertinoColors.activeBlue,
                       ),
                       onTap: () => BackupService.exportData(context, settings),
                     ),
                     Container(
                       height: 0.5,
                       margin: const EdgeInsets.only(left: 16),
-                      color: CupertinoColors.separator,
+                      color: settings.separatorColor,
                     ),
                     CupertinoListTile(
-                      title: const Text(
+                      title: Text(
                         'Import Data',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: CupertinoColors.black,
+                          color: settings.listTileTextColor,
                           letterSpacing: -0.3,
                         ),
                       ),
-                      trailing: const Icon(
+                      trailing: Icon(
                         CupertinoIcons.cloud_download,
-                        color: CupertinoColors.activeBlue,
+                        color: settings.isDarkTheme
+                            ? CupertinoColors.activeBlue.darkColor
+                            : CupertinoColors.activeBlue,
                       ),
                       onTap: () => BackupService.importData(context, settings),
                     ),
@@ -230,15 +289,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   width: double.infinity,
                   child: CupertinoButton(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    color: CupertinoColors.systemRed,
+                    color: settings.isDarkTheme
+                        ? const Color(0xFF3B3B3D)
+                        : CupertinoColors.systemRed,
                     borderRadius: BorderRadius.circular(12),
                     onPressed: () => _showResetConfirmation(context),
-                    child: const Text(
+                    child: Text(
                       'Reset App Data',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        color: CupertinoColors.white,
+                        color: settings.isDarkTheme
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.white,
                         letterSpacing: -0.4,
                       ),
                     ),
@@ -254,16 +317,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // Creates a consistent section header
   Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(
-          left: 16.0, right: 16.0, top: 32.0, bottom: 10.0),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          color: CupertinoColors.black,
-          letterSpacing: -0.5,
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) => Padding(
+        padding: const EdgeInsets.only(
+          left: 16.0,
+          right: 16.0,
+          top: 24.0,
+          bottom: 8.0,
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: settings.textColor,
+            letterSpacing: -0.5,
+          ),
         ),
       ),
     );
@@ -272,87 +341,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Builds a slider tile for duration settings
   Widget _buildSliderTile(String title, String value, double sliderValue,
       double min, double max, Function(double) onChanged) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: CupertinoColors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: CupertinoColors.systemGrey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: settings.listTileBackgroundColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: settings.isDarkTheme
+                ? const Color(0xFF38383A)
+                : CupertinoColors.systemGrey5,
+            width: 0.5,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: CupertinoColors.black,
-                  letterSpacing: -0.3,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: settings.listTileTextColor,
+                    letterSpacing: -0.3,
+                  ),
                 ),
-              ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: CupertinoColors.systemGrey,
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: settings.secondaryTextColor,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          CupertinoSlider(
-            value: sliderValue,
-            min: min,
-            max: max,
-            onChanged: onChanged,
-            activeColor: CupertinoColors.activeBlue,
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            CupertinoSlider(
+              value: sliderValue,
+              min: min,
+              max: max,
+              onChanged: onChanged,
+              activeColor: settings.isDarkTheme
+                  ? CupertinoColors.activeBlue.darkColor
+                  : CupertinoColors.activeBlue,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   // Builds a theme selection tile with animation and haptic feedback
-  Widget _buildThemeTile(String name, Color color, {LinearGradient? gradient}) {
+  Widget _buildThemeTile(String name, Color color,
+      {LinearGradient? gradient,
+      Color? textColor,
+      List<BoxShadow>? boxShadow}) {
     return _AnimatedThemeTile(
       name: name,
       color: color,
       gradient: gradient,
+      textColor: textColor,
+      boxShadow: boxShadow,
     );
   }
 
   // Shows a confirmation dialog for resetting app data
   void _showResetConfirmation(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text(
+        title: Text(
           'Reset App Data',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: settings.textColor,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             Text(
               'Are you sure you want to reset all app data? This action cannot be undone.',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                color: settings.textColor,
+              ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'This will reset:\n• Timer settings\n• Break durations\n• Session counts\n• Theme preferences\n• Sound settings\n• History data',
-              style: TextStyle(color: CupertinoColors.systemGrey),
+              style: TextStyle(
+                color: settings.secondaryTextColor,
+              ),
               textAlign: TextAlign.left,
             ),
           ],
@@ -361,9 +447,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () async {
-              final settings =
-                  Provider.of<SettingsProvider>(context, listen: false);
-
               // Clear all saved data
               await settings.clearAllData();
 
@@ -373,25 +456,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 showCupertinoModalPopup(
                   context: context,
                   builder: (BuildContext context) => CupertinoActionSheet(
-                    message:
-                        const Text('All app data has been reset successfully'),
+                    message: Text(
+                      'All app data has been reset successfully',
+                      style: TextStyle(
+                        color: settings.textColor,
+                      ),
+                    ),
                     actions: [
                       CupertinoActionSheetAction(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('OK'),
+                        child: Text(
+                          'OK',
+                          style: TextStyle(
+                            color: settings.isDarkTheme
+                                ? CupertinoColors.activeBlue.darkColor
+                                : CupertinoColors.activeBlue,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 );
               }
             },
-            child: const Text('Reset',
-                style: TextStyle(color: CupertinoColors.systemRed)),
+            child: Text(
+              'Reset',
+              style: TextStyle(
+                color: settings.isDarkTheme
+                    ? CupertinoColors.systemRed.darkColor
+                    : CupertinoColors.systemRed,
+              ),
+            ),
           ),
           CupertinoDialogAction(
             isDefaultAction: true,
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: settings.isDarkTheme
+                    ? CupertinoColors.activeBlue.darkColor
+                    : CupertinoColors.activeBlue,
+              ),
+            ),
           ),
         ],
       ),
@@ -404,21 +511,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          height: 250, // Increased height
+          height: 250,
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).padding.bottom,
-          ), // Add padding for safe area
-          color: CupertinoColors.systemBackground,
+          ),
+          color: settings.isDarkTheme
+              ? CupertinoColors.systemBackground.darkColor
+              : CupertinoColors.systemBackground,
           child: Column(
             children: [
               Container(
-                height: 50, // Increased height for Done button
+                height: 50,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: const BoxDecoration(
-                  color: CupertinoColors.systemGrey6,
+                decoration: BoxDecoration(
+                  color: settings.isDarkTheme
+                      ? const Color(0xFF1C1C1E)
+                      : CupertinoColors.systemGrey6,
                   border: Border(
                     bottom: BorderSide(
-                      color: CupertinoColors.separator,
+                      color: settings.separatorColor,
                       width: 0.5,
                     ),
                   ),
@@ -428,7 +539,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     CupertinoButton(
                       padding: EdgeInsets.zero,
-                      child: const Text('Done'),
+                      child: Text(
+                        'Done',
+                        style: TextStyle(
+                          color: settings.isDarkTheme
+                              ? CupertinoColors.activeBlue.darkColor
+                              : CupertinoColors.activeBlue,
+                        ),
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -436,7 +554,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               Expanded(
                 child: CupertinoPicker(
-                  itemExtent: 44, // Increased item height
+                  itemExtent: 44,
                   onSelectedItemChanged: (int index) {
                     settings.setSessionsBeforeLongBreak(index + 1);
                   },
@@ -447,7 +565,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     return Center(
                       child: Text(
                         (index + 1).toString(),
-                        style: const TextStyle(fontSize: 20),
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: settings.textColor,
+                        ),
                       ),
                     );
                   }),
@@ -459,6 +580,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
+
+  Widget _buildListTileContainer({
+    required Widget child,
+    EdgeInsetsGeometry? margin,
+  }) {
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) => Container(
+        margin: margin ??
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: settings.listTileBackgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: settings.isDarkTheme
+                ? const Color(0xFF38383A)
+                : CupertinoColors.systemGrey5,
+            width: 0.5,
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
 }
 
 // Stateful widget for animated theme tile
@@ -466,11 +610,15 @@ class _AnimatedThemeTile extends StatefulWidget {
   final String name;
   final Color color;
   final LinearGradient? gradient;
+  final Color? textColor;
+  final List<BoxShadow>? boxShadow;
 
   const _AnimatedThemeTile({
     required this.name,
     required this.color,
     this.gradient,
+    this.textColor,
+    this.boxShadow,
   });
 
   @override
@@ -539,13 +687,7 @@ class _AnimatedThemeTileState extends State<_AnimatedThemeTile>
             color: widget.gradient == null ? widget.color : null,
             gradient: widget.gradient,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: CupertinoColors.systemGrey6.withOpacity(0.5),
-                offset: const Offset(0, 2),
-                blurRadius: 6,
-              ),
-            ],
+            boxShadow: widget.boxShadow,
             border: isSelected
                 ? Border.all(
                     color: CupertinoColors.activeBlue,
@@ -562,7 +704,10 @@ class _AnimatedThemeTileState extends State<_AnimatedThemeTile>
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: CupertinoColors.black,
+                    color: widget.textColor ??
+                        (widget.color.computeLuminance() > 0.5
+                            ? CupertinoColors.black
+                            : CupertinoColors.white),
                     letterSpacing: -0.3,
                   ),
                 ),

@@ -486,54 +486,90 @@ class SettingsProvider with ChangeNotifier {
   String get selectedTheme => _selectedTheme;
 
   Color get backgroundColor {
-    switch (_selectedTheme) {
-      case 'Dark':
-        return CupertinoColors.black;
-      case 'Citrus Orange':
-        return const Color(0xFFFFD9A6);
-      case 'Rose Quartz':
-        return const Color(0xFFF8C8D7);
-      case 'Seafoam Green':
-        return const Color(0xFFD9F2E6);
-      case 'Lavender Mist':
-        return const Color(0xFFE6D9F2);
-      case 'Light':
-      default:
-        return CupertinoColors.systemGroupedBackground;
+    if (_selectedTheme == 'Dark') {
+      return const Color(0xFF000000);
+    } else if (_selectedTheme == 'Light') {
+      return CupertinoColors.systemGroupedBackground;
+    } else {
+      switch (_selectedTheme) {
+        case 'Citrus Orange':
+          return const Color(0xFFFFD9A6);
+        case 'Rose Quartz':
+          return const Color(0xFFF8C8D7);
+        case 'Seafoam Green':
+          return const Color(0xFFD9F2E6);
+        case 'Lavender Mist':
+          return const Color(0xFFE6D9F2);
+        default:
+          return CupertinoColors.systemGroupedBackground;
+      }
     }
   }
 
   Color get textColor {
-    switch (_selectedTheme) {
-      case 'Dark':
-        return CupertinoColors.white;
-      case 'Light':
-      case 'Citrus Orange':
-      case 'Rose Quartz':
-      case 'Seafoam Green':
-      case 'Lavender Mist':
-      default:
-        return CupertinoColors.label;
+    if (_selectedTheme == 'Dark') {
+      return CupertinoColors.white;
+    } else if (_selectedTheme == 'Light') {
+      return CupertinoColors.label;
+    } else {
+      return CupertinoColors.label;
     }
   }
 
   Color get secondaryBackgroundColor {
-    switch (_selectedTheme) {
-      case 'Dark':
-        return CupertinoColors.darkBackgroundGray;
-      case 'Citrus Orange':
-        return const Color(0xFFFFE5CC);
-      case 'Rose Quartz':
-        return const Color(0xFFFADFE7);
-      case 'Seafoam Green':
-        return const Color(0xFFE6F5EE);
-      case 'Lavender Mist':
-        return const Color(0xFFF0E6F2);
-      case 'Light':
-      default:
-        return CupertinoColors.secondarySystemGroupedBackground;
+    if (_selectedTheme == 'Dark') {
+      return const Color(0xFF1C1C1E);
+    } else if (_selectedTheme == 'Light') {
+      return CupertinoColors.tertiarySystemGroupedBackground;
+    } else {
+      switch (_selectedTheme) {
+        case 'Citrus Orange':
+          return const Color(0xFFFFE5CC);
+        case 'Rose Quartz':
+          return const Color(0xFFFADFE7);
+        case 'Seafoam Green':
+          return const Color(0xFFE6F5EE);
+        case 'Lavender Mist':
+          return const Color(0xFFF0E6F2);
+        default:
+          return CupertinoColors.tertiarySystemGroupedBackground;
+      }
     }
   }
+
+  Color get separatorColor {
+    if (_selectedTheme == 'Dark') {
+      return const Color(0xFF38383A);
+    } else if (_selectedTheme == 'Light') {
+      return CupertinoColors.separator;
+    }
+    return CupertinoColors.separator;
+  }
+
+  Color get listTileBackgroundColor {
+    if (_selectedTheme == 'Dark') {
+      return const Color(0xFF1C1C1E);
+    } else if (_selectedTheme == 'Light') {
+      return CupertinoColors.white;
+    }
+    return CupertinoColors.white;
+  }
+
+  Color get listTileTextColor {
+    if (_selectedTheme == 'Dark') {
+      return CupertinoColors.white;
+    }
+    return CupertinoColors.label;
+  }
+
+  Color get secondaryTextColor {
+    if (_selectedTheme == 'Dark') {
+      return const Color(0xFF98989F);
+    }
+    return CupertinoColors.secondaryLabel;
+  }
+
+  bool get isDarkTheme => _selectedTheme == 'Dark';
 
   void setTheme(String theme) {
     _selectedTheme = theme;
