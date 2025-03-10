@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:pomo_timer/providers/settings_provider.dart';
 import 'package:pomo_timer/services/backup_service.dart';
+import 'settings/data_settings_page.dart';
+import '../../services/sync_service.dart';
 
 // StatefulWidget for dynamic settings adjustments
 class SettingsScreen extends StatefulWidget {
@@ -20,6 +22,91 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double shortBreakDuration = 5; // Short break length in minutes
   double longBreakDuration = 15; // Long break length in minutes
   int sessionsBeforeLongBreak = 4; // Sessions before a long break
+  bool _iCloudSyncEnabled = true;
+  bool _isSyncing = false;
+  String _lastSyncedTime = 'Not synced yet';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSyncPreferences();
+  }
+
+  // Load saved preferences for iCloud sync
+  Future<void> _loadSyncPreferences() async {
+    final syncService = Provider.of<SyncService>(context, listen: false);
+    final syncEnabled = await syncService.isSyncEnabled();
+    final lastSynced = await syncService.getLastSyncedTime();
+
+    setState(() {
+      _iCloudSyncEnabled = syncEnabled;
+      _lastSyncedTime = lastSynced;
+    });
+  }
+
+  // Simulate sync process
+  Future<void> _syncNow() async {
+    if (_isSyncing) return;
+
+    setState(() {
+      _isSyncing = true;
+    });
+
+    // Use sync service to sync data
+    final syncService = Provider.of<SyncService>(context, listen: false);
+    final success = await syncService.syncData();
+
+    if (success) {
+      // Get updated last synced time
+      final lastSynced = await syncService.getLastSyncedTime();
+
+      setState(() {
+        _lastSyncedTime = lastSynced;
+        _isSyncing = false;
+      });
+
+      // Show success message
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) => CupertinoAlertDialog(
+            title: const Text('Sync Successful'),
+            content: const Text('Your data has been synced to iCloud.'),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } else {
+      setState(() {
+        _isSyncing = false;
+      });
+
+      // Show error message
+      if (mounted) {
+        showCupertinoDialog(
+          context: context,
+          builder: (BuildContext context) => CupertinoAlertDialog(
+            title: const Text('Sync Failed'),
+            content:
+                const Text('Unable to sync your data. Please try again later.'),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +119,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
         middle: Text(
           'Settings',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 17,
             fontWeight: FontWeight.w600,
             color: settings.textColor,
           ),
         ),
+        // Add leading button if this is a pushed screen
+        leading: Navigator.canPop(context)
+            ? CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: Text(
+                  'Done',
+                  style: TextStyle(
+                    color: settings.isDarkTheme
+                        ? CupertinoColors.activeBlue.darkColor
+                        : CupertinoColors.activeBlue,
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
         backgroundColor: settings.backgroundColor,
         border: const Border(
           bottom: BorderSide(
@@ -50,9 +152,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader('Timer Durations'),
+              // Timer section
+              _buildSectionHeader('Timer'),
               _buildSliderTile(
-                'Session Duration',
+                'Focus Session',
                 '${settings.sessionDuration.round()} min',
                 settings.sessionDuration,
                 1.0,
@@ -75,6 +178,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 45,
                 (value) => settings.setLongBreakDuration(value),
               ),
+              _buildSectionFooter(
+                  'Adjust the duration of your focus sessions and breaks.'),
+
+              // Session Cycle section
               _buildSectionHeader('Session Cycle'),
               _buildListTileContainer(
                 child: CupertinoListTile(
@@ -113,129 +220,133 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              _buildSectionHeader('Theme'),
-              Container(
-                height: 120,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
+              _buildSectionFooter(
+                  'Number of focus sessions to complete before taking a long break.'),
+
+              // Theme section with improved UI
+              _buildSectionHeader('Appearance'),
+              _buildListTileContainer(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildThemeTile(
-                      'Light',
-                      CupertinoColors.white,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          CupertinoColors.white,
-                          CupertinoColors.systemGrey6,
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Choose a theme for your app',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: settings.secondaryTextColor,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 120,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        children: [
+                          _buildThemeTile(
+                            'Light',
+                            CupertinoColors.white,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                CupertinoColors.white,
+                                CupertinoColors.systemGrey6,
+                              ],
+                            ),
+                            textColor: CupertinoColors.label,
+                            boxShadow: [
+                              BoxShadow(
+                                color: CupertinoColors.systemGrey5
+                                    .withOpacity(0.5),
+                                offset: const Offset(0, 2),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          _buildThemeTile(
+                            'Dark',
+                            const Color(0xFF1C1C1E),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color(0xFF1C1C1E),
+                                const Color(0xFF2C2C2E),
+                              ],
+                            ),
+                            textColor: CupertinoColors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF1C1C1E).withOpacity(0.3),
+                                offset: const Offset(0, 2),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          _buildThemeTile(
+                            'Citrus Orange',
+                            const Color(0xFFFFD9A6),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFFD9A6).withOpacity(0.3),
+                                offset: const Offset(0, 2),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          _buildThemeTile(
+                            'Rose Quartz',
+                            const Color(0xFFF8C8D7),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFF8C8D7).withOpacity(0.3),
+                                offset: const Offset(0, 2),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          _buildThemeTile(
+                            'Seafoam Green',
+                            const Color(0xFFD9F2E6),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFD9F2E6).withOpacity(0.3),
+                                offset: const Offset(0, 2),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          _buildThemeTile(
+                            'Lavender Mist',
+                            const Color(0xFFE6D9F2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFE6D9F2).withOpacity(0.3),
+                                offset: const Offset(0, 2),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                      textColor: CupertinoColors.label,
-                      boxShadow: [
-                        BoxShadow(
-                          color: CupertinoColors.systemGrey5.withOpacity(0.5),
-                          offset: const Offset(0, 2),
-                          blurRadius: 6,
-                        ),
-                      ],
                     ),
-                    _buildThemeTile(
-                      'Dark',
-                      const Color(0xFF1C1C1E),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          const Color(0xFF1C1C1E),
-                          const Color(0xFF2C2C2E),
-                        ],
-                      ),
-                      textColor: CupertinoColors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF1C1C1E).withOpacity(0.3),
-                          offset: const Offset(0, 2),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                    _buildThemeTile(
-                      'Citrus Orange',
-                      const Color(0xFFFFD9A6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFFD9A6).withOpacity(0.3),
-                          offset: const Offset(0, 2),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                    _buildThemeTile(
-                      'Rose Quartz',
-                      const Color(0xFFF8C8D7),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFF8C8D7).withOpacity(0.3),
-                          offset: const Offset(0, 2),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                    _buildThemeTile(
-                      'Seafoam Green',
-                      const Color(0xFFD9F2E6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFD9F2E6).withOpacity(0.3),
-                          offset: const Offset(0, 2),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                    _buildThemeTile(
-                      'Lavender Mist',
-                      const Color(0xFFE6D9F2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFE6D9F2).withOpacity(0.3),
-                          offset: const Offset(0, 2),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
+              _buildSectionFooter('Choose a theme that matches your style.'),
+
+              // Notifications section
               _buildSectionHeader('Notifications'),
-              _buildListTileContainer(
-                child: CupertinoListTile(
-                  title: Text(
-                    'Sound',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: settings.listTileTextColor,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  trailing: CupertinoSwitch(
-                    value: settings.soundEnabled,
-                    onChanged: (value) => settings.setSoundEnabled(value),
-                    activeColor: settings.isDarkTheme
-                        ? CupertinoColors.activeBlue.darkColor
-                        : CupertinoColors.activeBlue,
-                  ),
-                ),
-              ),
-              _buildSectionHeader('Data'),
               _buildListTileContainer(
                 child: Column(
                   children: [
                     CupertinoListTile(
                       title: Text(
-                        'Export Data',
+                        'Sound',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -243,22 +354,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           letterSpacing: -0.3,
                         ),
                       ),
-                      trailing: Icon(
-                        CupertinoIcons.cloud_upload,
-                        color: settings.isDarkTheme
+                      trailing: CupertinoSwitch(
+                        value: settings.soundEnabled,
+                        onChanged: (value) => settings.setSoundEnabled(value),
+                        activeColor: settings.isDarkTheme
                             ? CupertinoColors.activeBlue.darkColor
                             : CupertinoColors.activeBlue,
                       ),
-                      onTap: () => BackupService.exportData(context, settings),
                     ),
-                    Container(
-                      height: 0.5,
-                      margin: const EdgeInsets.only(left: 16),
-                      color: settings.separatorColor,
-                    ),
+                    // Add more notification options here with dividers between them
+                  ],
+                ),
+              ),
+              _buildSectionFooter('Control sound alerts when sessions end.'),
+
+              // Data section
+              _buildSectionHeader('Data'),
+              _buildListTileContainer(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // iCloud Sync Toggle with explanation
                     CupertinoListTile(
+                      leading: Icon(
+                        CupertinoIcons.cloud,
+                        color: settings.isDarkTheme
+                            ? CupertinoColors.activeBlue.darkColor
+                            : CupertinoColors.activeBlue,
+                      ),
                       title: Text(
-                        'Import Data',
+                        'iCloud Sync',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -266,18 +391,207 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           letterSpacing: -0.3,
                         ),
                       ),
-                      trailing: Icon(
-                        CupertinoIcons.cloud_download,
-                        color: settings.isDarkTheme
+                      subtitle: Text(
+                        'Keep your timer data in sync across devices',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: settings.secondaryTextColor,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      trailing: CupertinoSwitch(
+                        value: _iCloudSyncEnabled,
+                        onChanged: (value) async {
+                          final syncService =
+                              Provider.of<SyncService>(context, listen: false);
+                          await syncService.setSyncEnabled(value);
+                          setState(() {
+                            _iCloudSyncEnabled = value;
+                          });
+
+                          // Show confirmation
+                          if (mounted) {
+                            final message = value
+                                ? 'iCloud Sync enabled'
+                                : 'iCloud Sync disabled';
+
+                            _showToast(context, message);
+                          }
+                        },
+                        activeColor: settings.isDarkTheme
                             ? CupertinoColors.activeBlue.darkColor
                             : CupertinoColors.activeBlue,
                       ),
-                      onTap: () => BackupService.importData(context, settings),
+                    ),
+
+                    // Divider
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Container(
+                        height: 0.5,
+                        color: settings.separatorColor,
+                      ),
+                    ),
+
+                    // Sync status and button section
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Status indicator
+                          Row(
+                            children: [
+                              Icon(
+                                _iCloudSyncEnabled
+                                    ? CupertinoIcons.check_mark_circled
+                                    : CupertinoIcons.exclamationmark_circle,
+                                color: _iCloudSyncEnabled
+                                    ? CupertinoColors.activeGreen
+                                    : CupertinoColors.systemGrey,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _iCloudSyncEnabled
+                                    ? 'Sync is active'
+                                    : 'Sync is disabled',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: _iCloudSyncEnabled
+                                      ? CupertinoColors.activeGreen
+                                      : CupertinoColors.systemGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // Last synced info
+                          Text(
+                            'Last Synced: $_lastSyncedTime',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: settings.secondaryTextColor,
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Sync Now Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: CupertinoButton(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              color: _iCloudSyncEnabled
+                                  ? (settings.isDarkTheme
+                                      ? CupertinoColors.activeBlue.darkColor
+                                      : CupertinoColors.activeBlue)
+                                  : CupertinoColors.systemGrey4,
+                              disabledColor: CupertinoColors.systemGrey4,
+                              borderRadius: BorderRadius.circular(10),
+                              onPressed: _iCloudSyncEnabled && !_isSyncing
+                                  ? _syncNow
+                                  : null,
+                              child: _isSyncing
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: const [
+                                        CupertinoActivityIndicator(
+                                          color: CupertinoColors.white,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Syncing...',
+                                          style: TextStyle(
+                                            color: CupertinoColors.white,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: const [
+                                        Icon(
+                                          CupertinoIcons.arrow_2_circlepath,
+                                          color: CupertinoColors.white,
+                                          size: 18,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Sync Now',
+                                          style: TextStyle(
+                                            color: CupertinoColors.white,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+
+                          if (!_iCloudSyncEnabled)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                'Enable iCloud Sync to use this feature',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: settings.secondaryTextColor,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+
+              // About section
+              _buildSectionHeader('About'),
+              _buildListTileContainer(
+                child: Column(
+                  children: [
+                    CupertinoListTile(
+                      title: const Text('Version'),
+                      trailing: Text(
+                        '1.0.0',
+                        style: TextStyle(
+                          color: settings.secondaryTextColor,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Container(
+                        height: 0.5,
+                        color: settings.separatorColor,
+                      ),
+                    ),
+                    CupertinoListTile(
+                      title: const Text('Privacy Policy'),
+                      trailing: const Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 16,
+                      ),
+                      onTap: () {
+                        // Open privacy policy
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              // Reset section
+              _buildSectionHeader('Reset'),
               Padding(
                 padding: EdgeInsets.only(
                   left: 16.0,
@@ -308,6 +622,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
+              _buildSectionFooter(
+                  'This will reset all settings and data to default values.'),
             ],
           ),
         ),
@@ -332,6 +648,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
             fontWeight: FontWeight.w600,
             color: settings.textColor,
             letterSpacing: -0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Creates a section footer with explanation text
+  Widget _buildSectionFooter(String text) {
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, _) => Padding(
+        padding: const EdgeInsets.only(
+          left: 16.0,
+          right: 16.0,
+          top: 8.0,
+          bottom: 8.0,
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            color: settings.secondaryTextColor,
+            letterSpacing: -0.2,
           ),
         ),
       ),
@@ -417,7 +755,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: Text(
-          'Reset App Data',
+          'Reset All Settings?',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: settings.textColor,
@@ -426,24 +764,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const SizedBox(height: 8),
             Text(
-              'Are you sure you want to reset all app data? This action cannot be undone.',
+              'This will reset all settings to their default values. Your data will be permanently deleted and cannot be recovered.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: settings.textColor,
+                fontSize: 13,
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              'This will reset:\n• Timer settings\n• Break durations\n• Session counts\n• Theme preferences\n• Sound settings\n• History data',
-              style: TextStyle(
-                color: settings.secondaryTextColor,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: settings.isDarkTheme
+                    ? const Color(0xFF2C2C2E)
+                    : CupertinoColors.systemGrey6,
+                borderRadius: BorderRadius.circular(8),
               ),
-              textAlign: TextAlign.left,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildResetItem('Timer settings'),
+                  _buildResetItem('Break durations'),
+                  _buildResetItem('Session counts'),
+                  _buildResetItem('Theme preferences'),
+                  _buildResetItem('Sound settings'),
+                  _buildResetItem('History data'),
+                ],
+              ),
             ),
           ],
         ),
         actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: settings.isDarkTheme
+                    ? CupertinoColors.activeBlue.darkColor
+                    : CupertinoColors.activeBlue,
+              ),
+            ),
+          ),
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () async {
@@ -453,30 +818,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Show confirmation toast
               Navigator.pop(context);
               if (context.mounted) {
-                showCupertinoModalPopup(
-                  context: context,
-                  builder: (BuildContext context) => CupertinoActionSheet(
-                    message: Text(
-                      'All app data has been reset successfully',
-                      style: TextStyle(
-                        color: settings.textColor,
-                      ),
-                    ),
-                    actions: [
-                      CupertinoActionSheetAction(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          'OK',
-                          style: TextStyle(
-                            color: settings.isDarkTheme
-                                ? CupertinoColors.activeBlue.darkColor
-                                : CupertinoColors.activeBlue,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
+                _showToast(context, 'All settings have been reset');
               }
             },
             child: Text(
@@ -488,16 +830,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: settings.isDarkTheme
-                    ? CupertinoColors.activeBlue.darkColor
-                    : CupertinoColors.activeBlue,
-              ),
+        ],
+      ),
+    );
+  }
+
+  // Helper for reset dialog items
+  Widget _buildResetItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          const Icon(
+            CupertinoIcons.circle_fill,
+            size: 6,
+            color: CupertinoColors.systemGrey,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 13,
+              color: CupertinoColors.systemGrey,
             ),
           ),
         ],
@@ -602,6 +956,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: child,
       ),
     );
+  }
+
+  // Show a toast notification
+  void _showToast(BuildContext context, String message) {
+    final overlay = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: 100,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: CupertinoColors.systemGrey.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: CupertinoColors.white,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(overlay);
+    Future.delayed(const Duration(seconds: 2), () {
+      overlay.remove();
+    });
   }
 }
 

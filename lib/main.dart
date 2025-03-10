@@ -3,11 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
-import 'onboarding_screen.dart';
 import 'screens/statistics_screen.dart';
 import 'screens/premium_screen.dart';
 import 'providers/settings_provider.dart';
 import 'services/iap_service.dart';
+import 'screens/settings_screen.dart';
+import 'services/cloudkit_service.dart';
+import 'services/sync_service.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,19 +25,55 @@ void main() async {
     await InAppPurchase.instance.restorePurchases();
   } */
 
+  // Initialize CloudKit service
+  final cloudKitService = CloudKitService();
+  await cloudKitService.initialize();
+
+  // Initialize Sync service with CloudKit
+  final syncService = SyncService(cloudKitService: cloudKitService);
+  await syncService.initialize();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => settingsProvider),
         ChangeNotifierProvider(create: (_) => IAPService()),
+        ChangeNotifierProvider<CloudKitService>(create: (_) => cloudKitService),
+        ChangeNotifierProvider<SyncService>(create: (_) => syncService),
       ],
       child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Sync when app is resumed
+      final syncService = Provider.of<SyncService>(context, listen: false);
+      syncService.syncData();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +101,12 @@ class MyApp extends StatelessWidget {
             textStyle: TextStyle(color: settings.textColor),
           ),
         ),
-        initialRoute: '/',
+        home: const SplashScreen(),
         routes: {
-          '/': (context) => const OnboardingScreen(),
           '/home': (context) => const HomeScreen(),
           '/statistics': (context) => const StatisticsScreen(),
           '/premium': (context) => const PremiumScreen(),
+          '/settings': (context) => const SettingsScreen(),
         },
       ),
     );

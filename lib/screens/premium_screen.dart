@@ -14,7 +14,8 @@ class PremiumScreen extends StatefulWidget {
 
 class _PremiumScreenState extends State<PremiumScreen>
     with SingleTickerProviderStateMixin {
-  PricingPlan? _selectedPlan;
+  PricingPlan? _selectedPlan =
+      PricingPlan.yearly; // Pre-select yearly plan as "Best Value"
   late AnimationController _animationController;
 
   @override
@@ -24,6 +25,8 @@ class _PremiumScreenState extends State<PremiumScreen>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
+    // Start with animation already complete since we pre-selected a plan
+    _animationController.value = 1.0;
   }
 
   @override
@@ -71,7 +74,7 @@ class _PremiumScreenState extends State<PremiumScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // Subtle background gradient
+              // Enhanced background with subtle pattern
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
@@ -81,12 +84,22 @@ class _PremiumScreenState extends State<PremiumScreen>
                       colors: [
                         settings.backgroundColor,
                         settings.isDarkTheme
-                            ? settings.backgroundColor
-                            : settings.backgroundColor.withOpacity(0.97),
+                            ? settings.backgroundColor.withOpacity(0.95)
+                            : settings.backgroundColor.withOpacity(0.92),
                       ],
-                      stops: const [0.0, 0.8],
+                      stops: const [0.0, 0.9],
                     ),
                   ),
+                  child: settings.isDarkTheme
+                      ? Opacity(
+                          opacity: 0.03,
+                          child: Image.asset(
+                            'assets/appstore.png',
+                            repeat: ImageRepeat.repeat,
+                            color: CupertinoColors.systemGrey,
+                          ),
+                        )
+                      : null,
                 ),
               ),
               // Main content
@@ -96,17 +109,39 @@ class _PremiumScreenState extends State<PremiumScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 40),
-                      Text(
-                        'Premium',
-                        style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.bold,
-                          color: settings.textColor,
-                          letterSpacing: -0.5,
-                        ),
+                      const SizedBox(height: 30),
+                      // Premium header with icon
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: settings.isDarkTheme
+                                  ? CupertinoColors.activeBlue.withOpacity(0.2)
+                                  : CupertinoColors.activeBlue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              CupertinoIcons.sparkles,
+                              color: settings.isDarkTheme
+                                  ? CupertinoColors.activeBlue.darkColor
+                                  : CupertinoColors.activeBlue,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Text(
+                            'Premium',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                              color: settings.textColor,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Text(
                         'Unlock all features and enhance your focus',
                         style: TextStyle(
@@ -119,8 +154,9 @@ class _PremiumScreenState extends State<PremiumScreen>
                       ),
                       const SizedBox(height: 32),
 
-                      // Combined Pricing Container
-                      Container(
+                      // Improved pricing container with subtle animation
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
                         decoration: BoxDecoration(
                           color: settings.listTileBackgroundColor,
                           borderRadius: BorderRadius.circular(16),
@@ -131,10 +167,11 @@ class _PremiumScreenState extends State<PremiumScreen>
                           boxShadow: [
                             BoxShadow(
                               color: settings.isDarkTheme
-                                  ? const Color(0xFF000000).withOpacity(0.2)
-                                  : CupertinoColors.systemGrey.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
+                                  ? const Color(0xFF000000).withOpacity(0.25)
+                                  : CupertinoColors.systemGrey
+                                      .withOpacity(0.15),
+                              blurRadius: 15,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
@@ -180,21 +217,50 @@ class _PremiumScreenState extends State<PremiumScreen>
 
                       _buildSubscribeButton(settings),
 
-                      // Features List Title
+                      // Features List with improved header
                       Padding(
                         padding: const EdgeInsets.only(top: 40, bottom: 16),
-                        child: Text(
-                          'Premium Features',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: settings.textColor,
-                            letterSpacing: -0.5,
-                          ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Premium Features',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: settings.textColor,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: settings.isDarkTheme
+                                    ? CupertinoColors.activeBlue.darkColor
+                                        .withOpacity(0.2)
+                                    : CupertinoColors.activeBlue
+                                        .withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '4 Features',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: settings.isDarkTheme
+                                      ? CupertinoColors.activeBlue.darkColor
+                                      : CupertinoColors.activeBlue,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
-                      // Feature cards with consistent spacing
+                      // Enhanced feature cards with subtle hover effect
                       _buildFeatureCard(
                         context,
                         settings,
@@ -205,7 +271,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                             ? CupertinoColors.systemBlue.darkColor
                             : CupertinoColors.systemBlue,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       _buildFeatureCard(
                         context,
                         settings,
@@ -216,7 +282,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                             ? CupertinoColors.systemPink.darkColor
                             : CupertinoColors.systemPink,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       _buildFeatureCard(
                         context,
                         settings,
@@ -227,7 +293,7 @@ class _PremiumScreenState extends State<PremiumScreen>
                             ? CupertinoColors.systemGreen.darkColor
                             : CupertinoColors.systemGreen,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       _buildFeatureCard(
                         context,
                         settings,
@@ -238,7 +304,36 @@ class _PremiumScreenState extends State<PremiumScreen>
                             ? CupertinoColors.systemOrange.darkColor
                             : CupertinoColors.systemOrange,
                       ),
-                      const SizedBox(height: 40),
+
+                      // Added satisfaction guarantee
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 30),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              CupertinoIcons.shield_lefthalf_fill,
+                              size: 16,
+                              color: settings.isDarkTheme
+                                  ? CupertinoColors.systemGrey.withOpacity(0.9)
+                                  : CupertinoColors.systemGrey.darkColor,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '30-Day Money Back Guarantee',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: settings.isDarkTheme
+                                    ? CupertinoColors.systemGrey
+                                        .withOpacity(0.9)
+                                    : CupertinoColors.systemGrey.darkColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
@@ -289,7 +384,8 @@ class _PremiumScreenState extends State<PremiumScreen>
       child: CupertinoButton(
         padding: EdgeInsets.zero,
         onPressed: () => _selectPlan(plan),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             border: isSelected
@@ -304,6 +400,11 @@ class _PremiumScreenState extends State<PremiumScreen>
                     bottomLeft: Radius.circular(16),
                     bottomRight: Radius.circular(16),
                   ),
+            color: isSelected
+                ? (settings.isDarkTheme
+                    ? highlightColor.withOpacity(0.08)
+                    : highlightColor.withOpacity(0.05))
+                : Colors.transparent,
           ),
           child: Row(
             children: [
@@ -335,7 +436,9 @@ class _PremiumScreenState extends State<PremiumScreen>
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
-                            color: settings.textColor,
+                            color: isSelected
+                                ? highlightColor
+                                : settings.textColor,
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -425,9 +528,19 @@ class _PremiumScreenState extends State<PremiumScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Enhanced subscribe button with subtle shadow
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
+              boxShadow: isDisabled
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: buttonColor.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
               border: isDisabled
                   ? Border.all(
                       color: settings.separatorColor,
@@ -444,29 +557,53 @@ class _PremiumScreenState extends State<PremiumScreen>
                   : () {
                       // TODO: Implement subscription logic
                     },
-              child: Text(
-                isDisabled ? 'Select a Plan' : 'Subscribe Now',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color:
-                      isDisabled ? secondaryTextColor : CupertinoColors.white,
-                  letterSpacing: -0.4,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (!isDisabled)
+                    Icon(
+                      CupertinoIcons.sparkles,
+                      color: CupertinoColors.white,
+                      size: 18,
+                    ),
+                  if (!isDisabled) SizedBox(width: 8),
+                  Text(
+                    isDisabled ? 'Select a Plan' : 'Subscribe Now',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: isDisabled
+                          ? secondaryTextColor
+                          : CupertinoColors.white,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
           if (!isDisabled)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                'You can cancel anytime',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: secondaryTextColor,
-                  letterSpacing: -0.2,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.arrow_counterclockwise,
+                    size: 12,
+                    color: secondaryTextColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'You can cancel anytime',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: secondaryTextColor,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
               ),
             ),
         ],
@@ -495,21 +632,30 @@ class _PremiumScreenState extends State<PremiumScreen>
           color: settings.separatorColor,
           width: 0.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: settings.isDarkTheme
+                ? Colors.black.withOpacity(0.1)
+                : Colors.grey.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: settings.isDarkTheme
                   ? color.withOpacity(0.2)
                   : color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               icon,
               color: color,
-              size: 20,
+              size: 22,
             ),
           ),
           const SizedBox(width: 14),
