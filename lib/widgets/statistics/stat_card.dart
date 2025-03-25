@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../utils/responsive_utils.dart';
+import '../../utils/theme_constants.dart';
 
 class StatCard extends StatelessWidget {
   final String title;
@@ -32,27 +34,60 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<SettingsProvider>(
       builder: (context, settings, child) {
+        final isSmallScreen = ResponsiveUtils.isSmallScreen(context);
+        final isTablet = ResponsiveUtils.isTablet(context);
+
+        // Responsive sizing
+        final horizontalPadding = isSmallScreen
+            ? ThemeConstants.mediumSpacing - 4
+            : isTablet
+                ? ThemeConstants.largeSpacing
+                : ThemeConstants.mediumSpacing;
+
+        final verticalPadding = isSmallScreen
+            ? ThemeConstants.mediumSpacing - 2
+            : isTablet
+                ? ThemeConstants.largeSpacing
+                : ThemeConstants.mediumSpacing;
+
+        final titleFontSize = isSmallScreen
+            ? ThemeConstants.smallFontSize - 1
+            : isTablet
+                ? ThemeConstants.smallFontSize + 2
+                : ThemeConstants.smallFontSize;
+
+        final valueFontSize = isSmallScreen
+            ? ThemeConstants.extraLargeFontSize - 4
+            : isTablet
+                ? ThemeConstants.extraLargeFontSize + 4
+                : ThemeConstants.extraLargeFontSize;
+
+        final labelFontSize = isSmallScreen
+            ? ThemeConstants.smallFontSize - 1
+            : isTablet
+                ? ThemeConstants.smallFontSize + 1
+                : ThemeConstants.smallFontSize;
+
+        final borderRadius =
+            isTablet ? ThemeConstants.largeRadius : ThemeConstants.mediumRadius;
+
         return Expanded(
           child: Container(
-            margin: const EdgeInsets.all(4.0),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 18.0,
+            margin: EdgeInsets.all(isTablet
+                ? ThemeConstants.smallSpacing
+                : ThemeConstants.tinySpacing),
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
             ),
             decoration: BoxDecoration(
               color: settings.listTileBackgroundColor,
-              borderRadius: BorderRadius.circular(16.0),
-              boxShadow: [
-                BoxShadow(
-                  color: settings.separatorColor.withOpacity(0.12),
-                  spreadRadius: 0,
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(borderRadius),
+              boxShadow: ThemeConstants.getShadow(settings.separatorColor),
               border: Border.all(
-                color: settings.separatorColor.withOpacity(0.15),
-                width: 1.0,
+                color: settings.separatorColor.withAlpha(
+                    ((ThemeConstants.veryLowOpacity + 0.05) * 255).toInt()),
+                width: ThemeConstants.thinBorder,
               ),
             ),
             child: Column(
@@ -61,46 +96,60 @@ class StatCard extends StatelessWidget {
                 Text(
                   title.toUpperCase(),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: titleFontSize,
                     letterSpacing: 0.2,
                     color: settings.secondaryTextColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(
+                    height: isTablet
+                        ? ThemeConstants.mediumSpacing
+                        : ThemeConstants.smallSpacing + 6),
                 Text(
                   showHours ? _formatDuration(value) : value.round().toString(),
                   style: TextStyle(
-                    fontSize: 30,
+                    fontSize: valueFontSize,
                     fontWeight: FontWeight.w600,
                     color: settings.textColor,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(
+                    height: isTablet
+                        ? ThemeConstants.smallSpacing
+                        : ThemeConstants.tinySpacing + 2),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet
+                        ? ThemeConstants.mediumSpacing - 6
+                        : ThemeConstants.smallSpacing + 2,
+                    vertical: isTablet
+                        ? ThemeConstants.smallSpacing - 3
+                        : ThemeConstants.tinySpacing + 1,
                   ),
                   decoration: BoxDecoration(
                     color: (showHours
                             ? CupertinoColors.activeBlue
                             : CupertinoColors.systemGreen)
-                        .withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(8),
+                        .withAlpha(ThemeConstants.opacityToAlpha(
+                            ThemeConstants.veryLowOpacity + 0.02)),
+                    borderRadius: BorderRadius.circular(isTablet
+                        ? ThemeConstants.smallSpacing
+                        : ThemeConstants.smallSpacing - 2),
                     border: Border.all(
                       color: (showHours
                               ? CupertinoColors.activeBlue
                               : CupertinoColors.systemGreen)
-                          .withOpacity(0.2),
-                      width: 1.0,
+                          .withAlpha(ThemeConstants.opacityToAlpha(
+                              ThemeConstants.veryLowOpacity + 0.1)),
+                      width: ThemeConstants.thinBorder,
                     ),
                   ),
                   child: Text(
                     showHours ? 'Duration' : 'Sessions',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: labelFontSize,
                       fontWeight: FontWeight.w500,
                       color: showHours
                           ? CupertinoColors.activeBlue

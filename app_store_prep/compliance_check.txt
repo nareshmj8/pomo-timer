@@ -1,0 +1,40 @@
+Checking for privacy policy...
+❌ Privacy policy not found!
+App Store requires a privacy policy for all apps. Please create one before submitting.
+Checking for terms of service...
+⚠️ Terms of service not found.
+Consider adding terms of service, especially if your app has user accounts or paid features.
+Checking for in-app purchases...
+Checking for iOS permissions...
+No common iOS permissions found in Info.plist.
+
+App Store Guidelines Checklist:
+- [ ] App provides all required functionality without requiring login
+- [ ] App does not include hidden features or undocumented functions
+- [ ] App does not use private APIs or frameworks
+- [ ] App has all appropriate age ratings set in App Store Connect
+- [ ] App has appropriate keywords and description
+- [ ] App has a support URL and marketing URL
+- [ ] App build is signed with a valid distribution certificate
+- [ ] App is tested on actual devices, not just simulators
+
+Checking for privacy policy...
+❌ Privacy policy not found!
+App Store requires a privacy policy for all apps. Please create one before submitting.
+Checking for terms of service...
+⚠️ Terms of service not found.
+Consider adding terms of service, especially if your app has user accounts or paid features.
+Checking for in-app purchases...
+Checking for iOS permissions...
+No common iOS permissions found in Info.plist.
+
+App Store Guidelines Checklist:
+- [ ] App provides all required functionality without requiring login
+- [ ] App does not include hidden features or undocumented functions
+- [ ] App does not use private APIs or frameworks
+- [ ] App has all appropriate age ratings set in App Store Connect
+- [ ] App has appropriate keywords and description
+- [ ] App has a support URL and marketing URL
+- [ ] App build is signed with a valid distribution certificate
+- [ ] App is tested on actual devices, not just simulators
+

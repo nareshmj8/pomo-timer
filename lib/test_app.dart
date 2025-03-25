@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/settings_screen.dart';
+import 'screens/settings/settings_screen.dart';
 import 'providers/settings_provider.dart';
 import 'services/sync_service.dart';
 
@@ -43,6 +43,13 @@ class TestApp extends StatelessWidget {
           scaffoldBackgroundColor: settings.backgroundColor,
           barBackgroundColor: settings.backgroundColor.withAlpha(204),
         ),
+        builder: (context, child) {
+          // Add a focus scope to properly handle focus throughout the app
+          return FocusScope(
+            autofocus: true,
+            child: child!,
+          );
+        },
         home: const SettingsScreen(),
       ),
     );

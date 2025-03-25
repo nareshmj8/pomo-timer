@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pomo_timer/services/cloudkit_service.dart';
+import 'package:pomodoro_timemaster/services/cloudkit_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -8,7 +8,8 @@ void main() {
   late CloudKitService cloudKitService;
 
   // Mock channel for CloudKit operations
-  const MethodChannel channel = MethodChannel('com.naresh.pomoTimer/cloudkit');
+  const MethodChannel channel =
+      MethodChannel('com.naresh.pomodorotimemaster/cloudkit');
 
   // Test data
   final testData = {
@@ -36,7 +37,10 @@ void main() {
         // Simulate saving to CloudKit
         try {
           // Simulate CloudKit record creation and save
-          final data = methodCall.arguments as Map<dynamic, dynamic>;
+          final args = methodCall.arguments as Map<dynamic, dynamic>;
+          final recordType = args['recordType'] as String;
+          final recordId = args['recordId'] as String;
+          final data = args['data'] as Map<dynamic, dynamic>;
 
           // Validate required fields
           if (!data.containsKey('lastModified')) {
@@ -61,6 +65,11 @@ void main() {
       case 'fetchData':
         // Simulate fetching from CloudKit
         try {
+          // Get requested record type and ID
+          final args = methodCall.arguments as Map<dynamic, dynamic>;
+          final recordType = args['recordType'] as String;
+          final recordId = args['recordId'] as String;
+
           // Simulate successful fetch
           return testData;
         } catch (e) {
@@ -129,12 +138,12 @@ void main() {
     });
 
     test('Should save data to CloudKit', () async {
-      final success = await cloudKitService.saveData(testData);
+      final success = await cloudKitService.saveData('session', '1', testData);
       expect(success, isTrue);
     });
 
     test('Should fetch data from CloudKit', () async {
-      final data = await cloudKitService.fetchData();
+      final data = await cloudKitService.fetchData('session', '1');
       expect(data, isNotNull);
       expect(data!['sessionDuration'], equals(testData['sessionDuration']));
       expect(data['sessionHistory'], equals(testData['sessionHistory']));
@@ -165,7 +174,7 @@ void main() {
       });
 
       // Attempt to save data
-      final success = await cloudKitService.saveData(testData);
+      final success = await cloudKitService.saveData('session', '1', testData);
 
       // Should handle the error gracefully
       expect(success, isFalse);
@@ -189,8 +198,9 @@ void main() {
       expect(cloudKitService.isAvailable, isFalse);
 
       // Attempt operations
-      final saveSuccess = await cloudKitService.saveData(testData);
-      final fetchData = await cloudKitService.fetchData();
+      final saveSuccess =
+          await cloudKitService.saveData('session', '1', testData);
+      final fetchData = await cloudKitService.fetchData('session', '1');
 
       // Operations should fail gracefully
       expect(saveSuccess, isFalse);
@@ -222,7 +232,8 @@ void main() {
 
       // The CloudKitService is catching the exception and returning false
       // so we should expect false instead of an exception
-      final result = await cloudKitService.saveData(invalidData);
+      final result =
+          await cloudKitService.saveData('session', '1', invalidData);
       expect(result, isFalse);
     });
 
@@ -241,7 +252,7 @@ void main() {
       });
 
       // Attempt to save data
-      final success = await cloudKitService.saveData(testData);
+      final success = await cloudKitService.saveData('session', '1', testData);
 
       // Should handle the error gracefully
       expect(success, isFalse);

@@ -1,0 +1,31 @@
+Memory Usage (MB):
+Second 1: 0.96875 MB
+Second 2: 69.5625 MB
+Second 3: 58.0312 MB
+Second 4: 56.8125 MB
+Second 5: 56.375 MB
+Second 6: 72.2656 MB
+Second 7:  MB
+Second 8:  MB
+Second 9:  MB
+Second 10:  MB
+Second 11:  MB
+Second 12:  MB
+Second 13:  MB
+Second 14:  MB
+Second 15:  MB
+Second 16:  MB
+Second 17:  MB
+Second 18:  MB
+Second 19:  MB
+Second 20:  MB
+Second 21:  MB
+Second 22:  MB
+Second 23:  MB
+Second 24:  MB
+Second 25:  MB
+Second 26:  MB
+Second 27:  MB
+Second 28:  MB
+Second 29:  MB
+Second 30:  MB

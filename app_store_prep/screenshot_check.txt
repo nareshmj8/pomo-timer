@@ -1,0 +1,30 @@
+App Store screenshot requirements:
+- iPhone 14 Pro Max (6.7-inch)
+- iPhone 14 Pro (6.1-inch)
+- iPhone 8 Plus (5.5-inch)
+- iPad Pro (12.9-inch)
+- iPad Pro (11-inch)
+
+❌ Screenshots directory not found!
+Please generate screenshots for all required devices before submitting to the App Store.
+
+You can generate screenshots using the following methods:
+1. Manually capture screenshots on real devices
+2. Use the iOS Simulator to capture screenshots
+3. Use Fastlane screenshots to automate the process
+
+App Store screenshot requirements:
+- iPhone 14 Pro Max (6.7-inch)
+- iPhone 14 Pro (6.1-inch)
+- iPhone 8 Plus (5.5-inch)
+- iPad Pro (12.9-inch)
+- iPad Pro (11-inch)
+
+❌ Screenshots directory not found!
+Please generate screenshots for all required devices before submitting to the App Store.
+
+You can generate screenshots using the following methods:
+1. Manually capture screenshots on real devices
+2. Use the iOS Simulator to capture screenshots
+3. Use Fastlane screenshots to automate the process
+

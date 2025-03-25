@@ -21,8 +21,49 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    - prefer_const_declarations
+    - prefer_const_constructors
+    - avoid_print
+    - prefer_final_fields
+
+analyzer:
+  errors:
+    # Treat these as info in test files
+    missing_return: info
+    unused_local_variable: info
+    deprecated_member_use: info
+    unused_import: info
+    # Don't error on test files
+    invalid_use_of_protected_member: ignore
+    unnecessary_import: info
+    unused_field: info
+    unused_element: info
+    override_on_non_overriding_member: ignore
+    unnecessary_brace_in_string_interps: info
+    unnecessary_getters_setters: info
+    prefer_const_constructors: info
+    prefer_const_declarations: info
+    prefer_final_fields: info
+    use_key_in_widget_constructors: info
+    avoid_function_literals_in_foreach_calls: info
+    annotate_overrides: info
+    unnecessary_overrides: info
+    unnecessary_non_null_assertion: info
+    unnecessary_cast: info
+    prefer_const_literals_to_create_immutables: info
+    sort_child_properties_last: info
+    curly_braces_in_flow_control_structures: info
+    prefer_function_declarations_over_variables: info
+    prefer_interpolation_to_compose_strings: info
+    await_only_futures: info
+  exclude:
+    - "build/**"
+    - "**/*.g.dart"
+    - "**/*.mocks.dart"
+    - "**/*.freezed.dart"
+    - "test/**"
+    - "test_driver/**"
+    - "integration_test/**"
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

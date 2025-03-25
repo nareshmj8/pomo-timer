@@ -2,12 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<key>BGTaskSchedulerPermittedIdentifiers</key>
+		<array>
+			<string>com.yourapp.sync</string>
+			<string>com.naresh.pomodorotimemaster.expiryCheck</string>
+			<string>com.naresh.pomodorotimemaster.timerCompletion</string>
+		</array>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Pomo Timer</string>
+		<string>Pomodoro TimeMaster</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -15,7 +21,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>pomo_timer</string>
+		<string>pomodoro_timemaster</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -23,15 +29,26 @@
 		<key>CFBundleSignature</key>
 		<string>????</string>
 		<key>CFBundleVersion</key>
-		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<string>13.0</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
+		<key>NSUserNotificationsUsageDescription</key>
+		<string>We need to send you notifications about your timer status and subscription.</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+			<string>processing</string>
+			<string>audio</string>
+		</array>
 		<key>UILaunchStoryboardName</key>
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
 		<string>Main</string>
+		<key>UIStatusBarHidden</key>
+		<false/>
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
@@ -45,18 +62,7 @@
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
-		<key>UIStatusBarHidden</key>
-		<false/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
-		<key>UIBackgroundModes</key>
-		<array>
-			<string>fetch</string>
-			<string>remote-notification</string>
-		</array>
-		<key>BGTaskSchedulerPermittedIdentifiers</key>
-		<array>
-			<string>com.yourapp.sync</string>
-		</array>
 	</dict>
 </plist>

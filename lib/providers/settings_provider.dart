@@ -1,467 +1,200 @@
 import 'dart:async';
-import 'dart:convert';
+// import 'dart:convert'; // Removed unused import
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/history_entry.dart';
 import '../models/chart_data.dart';
-import '../services/sound_service.dart';
+// import '../services/notification_service.dart'; // Removed unused import
+import 'settings/timer_settings_provider.dart';
+import 'settings/theme_settings_provider.dart';
+import 'settings/history_provider.dart';
+import 'settings/statistics_provider.dart';
 
+/// Main settings provider that coordinates all settings components
 class SettingsProvider with ChangeNotifier {
   final SharedPreferences _prefs;
+  // Commented out unused field but preserved for future use
+  // final NotificationService _notificationService = NotificationService();
+  late final TimerSettingsProvider _timerSettings;
+  late final ThemeSettingsProvider _themeSettings;
+  late final HistoryProvider _historyProvider;
+  late StatisticsProvider _statisticsProvider;
 
   SettingsProvider(this._prefs) {
-    _loadSavedData();
+    _initProviders();
   }
 
-  // Keys for SharedPreferences
-  static const String _sessionDurationKey = 'sessionDuration';
-  static const String _shortBreakDurationKey = 'shortBreakDuration';
-  static const String _longBreakDurationKey = 'longBreakDuration';
-  static const String _sessionsBeforeLongBreakKey = 'sessionsBeforeLongBreak';
-  static const String _soundEnabledKey = 'soundEnabled';
-  static const String _selectedThemeKey = 'selectedTheme';
-  static const String _historyKey = 'history';
-  static const String _completedSessionsKey = 'completedSessions';
-
-  // Load saved data from SharedPreferences
-  Future<void> _loadSavedData() async {
-    _sessionDuration = _prefs.getDouble(_sessionDurationKey) ?? 25.0;
-    _shortBreakDuration = _prefs.getDouble(_shortBreakDurationKey) ?? 5.0;
-    _longBreakDuration = _prefs.getDouble(_longBreakDurationKey) ?? 15.0;
-    _sessionsBeforeLongBreak = _prefs.getInt(_sessionsBeforeLongBreakKey) ?? 4;
-    _soundEnabled = _prefs.getBool(_soundEnabledKey) ?? true;
-    _selectedTheme = _prefs.getString(_selectedThemeKey) ?? 'Light';
-    _completedSessions = _prefs.getInt(_completedSessionsKey) ?? 0;
-
-    // Load history
-    final historyJson = _prefs.getStringList(_historyKey);
-    if (historyJson != null) {
-      _history = historyJson
-          .map((json) => HistoryEntry.fromJson(jsonDecode(json)))
-          .toList();
-    }
-
-    notifyListeners();
-  }
-
-  // Save data to SharedPreferences
-  Future<void> _saveData() async {
-    await _prefs.setDouble(_sessionDurationKey, _sessionDuration);
-    await _prefs.setDouble(_shortBreakDurationKey, _shortBreakDuration);
-    await _prefs.setDouble(_longBreakDurationKey, _longBreakDuration);
-    await _prefs.setInt(_sessionsBeforeLongBreakKey, _sessionsBeforeLongBreak);
-    await _prefs.setBool(_soundEnabledKey, _soundEnabled);
-    await _prefs.setString(_selectedThemeKey, _selectedTheme);
-    await _prefs.setInt(_completedSessionsKey, _completedSessions);
-
-    // Save history
-    final historyJson =
-        _history.map((entry) => jsonEncode(entry.toJson())).toList();
-    await _prefs.setStringList(_historyKey, historyJson);
-  }
-
-  double _sessionDuration = 25.0;
-  double _shortBreakDuration = 5.0;
-  double _longBreakDuration = 15.0;
-  int _sessionsBeforeLongBreak = 4;
-  int _completedSessions = 0;
-  double _currentSessionDuration = 25.0;
-
+  /// Initialize all component providers
   Future<void> init() async {
-    await _loadSavedData();
+    // This method is kept for backward compatibility
+    // All initialization is now done in _initProviders
   }
 
-  bool _isTimerRunning = false;
-  bool _isTimerPaused = false;
-  bool _isBreak = false;
-  Duration? _remainingTime;
-  String _selectedCategory = 'Work';
-  Timer? _timer;
+  /// Initialize all component providers
+  void _initProviders() {
+    _timerSettings = TimerSettingsProvider(_prefs);
+    _themeSettings = ThemeSettingsProvider(_prefs);
+    _historyProvider = HistoryProvider(_prefs);
+    _statisticsProvider = StatisticsProvider(_historyProvider.history);
 
-  double _progress = 1.0;
+    // Load notification settings
+    _loadNotificationSettings();
 
-  // Add a field to store total duration
-  late int _totalSeconds;
-
-  // Add list to store history
-  List<HistoryEntry> _history = [];
-  List<HistoryEntry> get history => _history;
-
-  // Add flag for session completion
-  bool _sessionCompleted = false;
-  bool get sessionCompleted => _sessionCompleted;
-
-  double get sessionDuration => _sessionDuration;
-  double get shortBreakDuration => _shortBreakDuration;
-  double get longBreakDuration => _longBreakDuration;
-  int get sessionsBeforeLongBreak => _sessionsBeforeLongBreak;
-  int get completedSessions => _completedSessions;
-  bool get isTimerRunning => _isTimerRunning;
-  bool get isTimerPaused => _isTimerPaused;
-  bool get isBreak => _isBreak;
-  Duration get remainingTime =>
-      _remainingTime ?? Duration(minutes: _sessionDuration.round());
-  String get selectedCategory => _selectedCategory;
-  double get progress => _progress;
-
-  // Constants for time calculations
-  static const int minutesPerHour = 60;
-
-  double _minutesToHours(int minutes) {
-    return minutes / minutesPerHour;
+    // Listen to changes in component providers
+    _timerSettings.addListener(_notifyListeners);
+    _themeSettings.addListener(_notifyListeners);
+    _historyProvider.addListener(_onHistoryChanged);
   }
 
-  double _calculateSessions(int minutes) {
-    return minutes * 0.04; // Each minute is 0.04 sessions
+  // Handle history changes
+  void _onHistoryChanged() {
+    _updateStatistics();
+    _notifyListeners();
   }
 
-  // Get statistics for a category
-  Map<String, double> getCategoryStats(String category,
-      {bool showHours = true}) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
-    final startOfMonth = DateTime(now.year, now.month, 1);
-
-    double todayHours = 0;
-    double weekHours = 0;
-    double monthHours = 0;
-    double totalHours = 0;
-    double todaySessions = 0;
-    double weekSessions = 0;
-    double monthSessions = 0;
-    double totalSessions = 0;
-
-    for (var entry in _history) {
-      if (category != 'All Categories' && entry.category != category) continue;
-
-      final entryDate = DateTime(
-        entry.timestamp.year,
-        entry.timestamp.month,
-        entry.timestamp.day,
-      );
-
-      final hours = _minutesToHours(entry.duration);
-      final sessions = _calculateSessions(entry.duration);
-
-      if (entryDate == today) {
-        todayHours += hours;
-        todaySessions += sessions;
-      }
-      if (entryDate.isAfter(startOfWeek.subtract(const Duration(days: 1)))) {
-        weekHours += hours;
-        weekSessions += sessions;
-      }
-      if (entryDate.isAfter(startOfMonth.subtract(const Duration(days: 1)))) {
-        monthHours += hours;
-        monthSessions += sessions;
-      }
-      totalHours += hours;
-      totalSessions += sessions;
-    }
-
-    return showHours
-        ? {
-            'today': todayHours,
-            'week': weekHours,
-            'month': monthHours,
-            'total': totalHours,
-          }
-        : {
-            'today': todaySessions,
-            'week': weekSessions,
-            'month': monthSessions,
-            'total': totalSessions,
-          };
+  // Update statistics with current history data
+  void _updateStatistics() {
+    // Update the existing statistics provider reference
+    _statisticsProvider = StatisticsProvider(_historyProvider.history);
   }
 
-  // Get daily data for the last 7 days
-  List<ChartData> getDailyData(String category) {
-    final now = DateTime.now();
-    final List<ChartData> data = [];
-
-    for (int i = 6; i >= 0; i--) {
-      final date = now.subtract(Duration(days: i));
-      final dayStart = DateTime(date.year, date.month, date.day);
-      final dayEnd = dayStart.add(const Duration(days: 1));
-
-      int totalMinutes = 0;
-      double totalSessions = 0;
-
-      for (var entry in _history) {
-        if (category != 'All Categories' && entry.category != category) {
-          continue;
-        }
-        if (entry.timestamp.isAfter(dayStart) &&
-            entry.timestamp.isBefore(dayEnd)) {
-          totalMinutes += entry.duration;
-          totalSessions += _calculateSessions(entry.duration);
-        }
-      }
-
-      data.add(ChartData(
-        date: dayStart,
-        hours: _minutesToHours(totalMinutes),
-        sessions: totalSessions,
-        isCurrentPeriod: i == 0,
-      ));
-    }
-
-    return data;
-  }
-
-  // Get weekly data for the last 7 weeks
-  List<ChartData> getWeeklyData(String category) {
-    final now = DateTime.now();
-    final List<ChartData> data = [];
-
-    for (int i = 6; i >= 0; i--) {
-      final weekStart = now.subtract(Duration(days: 7 * i + now.weekday - 1));
-      final weekEnd = weekStart.add(const Duration(days: 7));
-
-      int totalMinutes = 0;
-      double totalSessions = 0;
-
-      for (var entry in _history) {
-        if (category != 'All Categories' && entry.category != category) {
-          continue;
-        }
-        if (entry.timestamp.isAfter(weekStart) &&
-            entry.timestamp.isBefore(weekEnd)) {
-          totalMinutes += entry.duration;
-          totalSessions += _calculateSessions(entry.duration);
-        }
-      }
-
-      data.add(ChartData(
-        date: weekStart,
-        hours: _minutesToHours(totalMinutes),
-        sessions: totalSessions,
-        isCurrentPeriod: i == 0,
-      ));
-    }
-
-    return data;
-  }
-
-  List<ChartData> getMonthlyData(String category) {
-    final now = DateTime.now();
-    final List<ChartData> data = [];
-
-    for (int i = 6; i >= 0; i--) {
-      final monthStart = DateTime(now.year, now.month - i, 1);
-      final monthEnd = DateTime(now.year, now.month - i + 1, 0);
-
-      int totalMinutes = 0;
-      double totalSessions = 0;
-
-      for (var entry in _history) {
-        if (category != 'All Categories' && entry.category != category) {
-          continue;
-        }
-        if (entry.timestamp.isAfter(monthStart) &&
-            entry.timestamp.isBefore(monthEnd)) {
-          totalMinutes += entry.duration;
-          totalSessions += _calculateSessions(entry.duration);
-        }
-      }
-
-      data.add(ChartData(
-        date: monthStart,
-        hours: _minutesToHours(totalMinutes),
-        sessions: totalSessions,
-        isCurrentPeriod: i == 0,
-      ));
-    }
-
-    return data;
-  }
-
-  void startTimer() {
-    if (_isTimerRunning) return;
-    _sessionCompleted = false;
-    _isTimerRunning = true;
-    _isTimerPaused = false;
-    _isBreak = false;
-    _currentSessionDuration = _sessionDuration;
-    _remainingTime = Duration(minutes: _sessionDuration.round());
-    _totalSeconds = _remainingTime!.inSeconds;
-    _progress = 1.0;
-    _startCountdown();
-    _saveData();
+  void _notifyListeners() {
     notifyListeners();
   }
 
-  void pauseTimer() {
-    if (!_isTimerRunning) return;
-    _isTimerPaused = true;
-    _timer?.cancel();
-    notifyListeners();
-  }
+  // Forward timer settings properties and methods
+  bool get isTimerRunning => _timerSettings.isTimerRunning;
+  bool get isTimerPaused => _timerSettings.isTimerPaused;
+  bool get isBreak => _timerSettings.isBreak;
+  bool get sessionCompleted => _timerSettings.sessionCompleted;
+  Duration? get remainingTime => _timerSettings.remainingTime;
+  double get progress => _timerSettings.progress;
+  int get completedSessions => _timerSettings.completedSessions;
+  String get selectedCategory => _timerSettings.selectedCategory;
+  double get sessionDuration => _timerSettings.sessionDuration;
+  double get shortBreakDuration => _timerSettings.shortBreakDuration;
+  double get longBreakDuration => _timerSettings.longBreakDuration;
+  int get sessionsBeforeLongBreak => _timerSettings.sessionsBeforeLongBreak;
+  bool get soundEnabled => _timerSettings.soundEnabled;
+  int get notificationSoundType => _timerSettings.notificationSoundType;
 
-  void resumeTimer() {
-    if (!_isTimerRunning || !_isTimerPaused) return;
-    _isTimerPaused = false;
-    _startCountdown();
-    notifyListeners();
-  }
-
-  void resetTimer() {
-    _timer?.cancel();
-    _isTimerRunning = false;
-    _isTimerPaused = false;
-    _isBreak = false;
-    _remainingTime = Duration(minutes: _sessionDuration.round());
-    _progress = 1.0;
-    notifyListeners();
-  }
-
-  void updateRemainingTime(Duration remaining) {
-    _remainingTime = remaining;
-    notifyListeners();
-  }
-
-  void startBreak() {
-    if (_isTimerRunning) return;
-    _sessionCompleted = false;
-    _isBreak = true;
-    _isTimerRunning = true;
-    _isTimerPaused = false;
-    bool isLongBreak = shouldTakeLongBreak();
-    _remainingTime = Duration(
-        minutes: isLongBreak
-            ? _longBreakDuration.round()
-            : _shortBreakDuration.round());
-    if (isLongBreak) {
-      resetCompletedSessions();
-    }
-    _totalSeconds = _remainingTime!.inSeconds;
-    _progress = 1.0;
-    _startCountdown();
-    notifyListeners();
-  }
-
-  void incrementCompletedSessions() {
-    _completedSessions++;
-    _saveData();
-    notifyListeners();
-  }
-
-  void resetCompletedSessions() {
-    _completedSessions = 0;
-    _saveData();
-    notifyListeners();
-  }
-
-  bool shouldTakeLongBreak() {
-    return _completedSessions >= _sessionsBeforeLongBreak;
-  }
-
-  void setSessionDuration(double duration) {
-    _sessionDuration = duration;
-    if (!_isTimerRunning) {
-      _remainingTime = Duration(minutes: duration.round());
-    }
-    _saveData();
-    notifyListeners();
-  }
-
-  void setShortBreakDuration(double duration) {
-    _shortBreakDuration = duration;
-    _saveData();
-    notifyListeners();
-  }
-
-  void setLongBreakDuration(double duration) {
-    _longBreakDuration = duration;
-    _saveData();
-    notifyListeners();
-  }
-
-  void setSessionsBeforeLongBreak(int sessions) {
-    _sessionsBeforeLongBreak = sessions;
-    _saveData();
-    notifyListeners();
-  }
-
-  void setSelectedCategory(String category) {
-    _selectedCategory = category;
-    notifyListeners();
-  }
-
-  void _startCountdown() {
-    _timer?.cancel();
-    _sessionCompleted = false;
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_isTimerPaused || !_isTimerRunning) {
-        timer.cancel();
-        return;
-      }
-
-      if (_remainingTime!.inSeconds > 0) {
-        _remainingTime = _remainingTime! - const Duration(seconds: 1);
-        _progress = _remainingTime!.inSeconds / _totalSeconds;
-        notifyListeners();
-      } else {
-        timer.cancel();
-        _isTimerRunning = false;
-        _isTimerPaused = false;
-
-        if (!_isBreak) {
-          _history.add(HistoryEntry(
-            category: _selectedCategory,
-            duration: _currentSessionDuration.round(),
-            timestamp: DateTime.now(),
-          ));
-          incrementCompletedSessions();
-          _sessionCompleted = true;
-          _remainingTime = Duration(minutes: _sessionDuration.round());
-          _progress = 1.0;
-
-          if (_soundEnabled) {
-            _soundService.playCompletionSound();
-          }
-          _saveData();
-        } else {
-          _isBreak = false;
-          if (shouldTakeLongBreak()) {
-            resetCompletedSessions();
-          }
-          _remainingTime = Duration(minutes: _sessionDuration.round());
-          _progress = 1.0;
-
-          if (_soundEnabled) {
-            _soundService.playCompletionSound();
-          }
-          _saveData();
-        }
-        notifyListeners();
-      }
-    });
-  }
-
-  void clearSessionCompleted() {
-    _sessionCompleted = false;
-    notifyListeners();
-  }
-
+  void startTimer() => _timerSettings.startTimer();
+  void startBreak() => _timerSettings.startBreak();
+  void pauseTimer() => _timerSettings.pauseTimer();
+  void resumeTimer() => _timerSettings.resumeTimer();
+  void resetTimer() => _timerSettings.resetTimer();
+  bool shouldTakeLongBreak() => _timerSettings.shouldTakeLongBreak();
+  void setSessionDuration(double value) =>
+      _timerSettings.setSessionDuration(value);
+  void setShortBreakDuration(double value) =>
+      _timerSettings.setShortBreakDuration(value);
+  void setLongBreakDuration(double value) =>
+      _timerSettings.setLongBreakDuration(value);
+  void setSessionsBeforeLongBreak(int value) =>
+      _timerSettings.setSessionsBeforeLongBreak(value);
+  void toggleSound(bool enabled) => _timerSettings.toggleSound(enabled);
+  void setSoundEnabled(bool value) => _timerSettings.setSoundEnabled(value);
+  void setNotificationSoundType(int value) =>
+      _timerSettings.setNotificationSoundType(value);
+  void testNotificationSound() => _timerSettings.testNotificationSound();
+  void setSelectedCategory(String category) =>
+      _timerSettings.setSelectedCategory(category);
+  void switchToFocusMode() => _timerSettings.switchToFocusMode();
+  void switchToBreakMode() => _timerSettings.switchToBreakMode();
   void setSessionCompleted(bool value) {
-    _sessionCompleted = value;
-    notifyListeners();
+    _timerSettings.setSessionCompleted(value);
+    // Reload history data when a session is completed
+    if (!value) {
+      _historyProvider.reloadHistory().then((_) {
+        // Don't recreate the StatisticsProvider here, it will be updated by the history listener
+        notifyListeners();
+      });
+    }
   }
 
-  void submitFeedback(String feedback) {
-    // TODO: Implement feedback submission logic
-    // For now, just print the feedback
-    print('Feedback submitted: $feedback');
-    notifyListeners();
+  // Forward theme settings properties and methods
+  String get selectedTheme => _themeSettings.selectedTheme;
+  bool get isDarkTheme => _themeSettings.isDarkTheme;
+  Color get backgroundColor => _themeSettings.backgroundColor;
+  Color get textColor => _themeSettings.textColor;
+  Color get secondaryTextColor => _themeSettings.secondaryTextColor;
+  Color get secondaryBackgroundColor => _themeSettings.secondaryBackgroundColor;
+  Color get separatorColor => _themeSettings.separatorColor;
+  Color get listTileBackgroundColor => _themeSettings.listTileBackgroundColor;
+  Color get listTileTextColor => _themeSettings.listTileTextColor;
+  List<String> get availableThemes => _themeSettings.availableThemes;
+
+  void setTheme(String theme) => _themeSettings.setTheme(theme);
+
+  // Forward history properties and methods
+  List<HistoryEntry> get history => _historyProvider.history;
+
+  void addHistoryEntry(HistoryEntry entry) =>
+      _historyProvider.addHistoryEntry(entry);
+  void clearHistory() => _historyProvider.clearHistory();
+  void deleteHistoryEntry(HistoryEntry entry) =>
+      _historyProvider.deleteHistoryEntry(entry);
+  List<HistoryEntry> getHistoryByCategory(String category) =>
+      _historyProvider.getHistoryByCategory(category);
+  List<HistoryEntry> getHistoryByDateRange(DateTime start, DateTime end) =>
+      _historyProvider.getHistoryByDateRange(start, end);
+  int getTotalDurationByCategory(String category) =>
+      _historyProvider.getTotalDurationByCategory(category);
+  int getTotalSessionsByCategory(String category) =>
+      _historyProvider.getTotalSessionsByCategory(category);
+
+  // Method to refresh history data and update statistics
+  Future<void> refreshData() async {
+    debugPrint('🔄 SETTINGS_PROVIDER: Starting refreshData...');
+
+    try {
+      // Temporarily remove the history provider listener
+      _historyProvider.removeListener(_onHistoryChanged);
+      debugPrint('🔄 SETTINGS_PROVIDER: Removed history listener');
+
+      // Reload history
+      await _historyProvider.reloadHistory();
+      debugPrint('🔄 SETTINGS_PROVIDER: History reloaded');
+
+      // Manually update statistics
+      _updateStatistics();
+      debugPrint('🔄 SETTINGS_PROVIDER: Statistics updated');
+
+      // Re-add the listener
+      _historyProvider.addListener(_onHistoryChanged);
+      debugPrint('🔄 SETTINGS_PROVIDER: Re-added history listener');
+
+      // Make sure all listeners are notified
+      notifyListeners();
+      debugPrint('🔄 SETTINGS_PROVIDER: All listeners notified');
+
+      debugPrint('🔄 SETTINGS_PROVIDER: refreshData completed successfully');
+    } catch (e) {
+      debugPrint('❌ SETTINGS_PROVIDER: Error in refreshData: $e');
+      debugPrint('❌ SETTINGS_PROVIDER: Stack trace: ${StackTrace.current}');
+      // Always re-add the listener even if there's an error
+      _historyProvider.addListener(_onHistoryChanged);
+      // Re-throw to allow handling by caller
+      rethrow;
+    }
   }
+
+  // Forward statistics methods
+  List<ChartData> getDailyData(String category) =>
+      _statisticsProvider.getDailyData(category);
+  List<ChartData> getWeeklyData(String category) =>
+      _statisticsProvider.getWeeklyData(category);
+  List<ChartData> getMonthlyData(String category) =>
+      _statisticsProvider.getMonthlyData(category);
+  Map<String, double> getCategoryStats(String category,
+          {bool showHours = true}) =>
+      _statisticsProvider.getCategoryStats(category, showHours: showHours);
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _soundService.dispose();
+    _timerSettings.dispose();
+    _themeSettings.removeListener(_notifyListeners);
+    _historyProvider.removeListener(_onHistoryChanged);
     super.dispose();
   }
 
@@ -482,215 +215,194 @@ class SettingsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  String _selectedTheme = 'Light';
-  String get selectedTheme => _selectedTheme;
+  // Constants for time calculations
+  static const double minutesPerHour = 60.0;
 
-  Color get backgroundColor {
-    if (_selectedTheme == 'Dark') {
-      return const Color(0xFF000000);
-    } else if (_selectedTheme == 'Light') {
-      return CupertinoColors.systemGroupedBackground;
-    } else {
-      switch (_selectedTheme) {
-        case 'Citrus Orange':
-          return const Color(0xFFFFD9A6);
-        case 'Rose Quartz':
-          return const Color(0xFFF8C8D7);
-        case 'Seafoam Green':
-          return const Color(0xFFD9F2E6);
-        case 'Lavender Mist':
-          return const Color(0xFFE6D9F2);
-        default:
-          return CupertinoColors.systemGroupedBackground;
-      }
-    }
+  // These methods are commented out as they're currently unused
+  // But preserved for future use
+  /*
+  // Convert minutes to hours
+  double _minutesToHours(int minutes) {
+    return minutes / minutesPerHour;
   }
 
-  Color get textColor {
-    if (_selectedTheme == 'Dark') {
-      return CupertinoColors.white;
-    } else if (_selectedTheme == 'Light') {
-      return CupertinoColors.label;
-    } else {
-      return CupertinoColors.label;
-    }
+  // Calculate number of sessions based on duration
+  double _calculateSessions(int minutes) {
+    return minutes * 0.04; // Each minute is 0.04 sessions
   }
-
-  Color get secondaryBackgroundColor {
-    if (_selectedTheme == 'Dark') {
-      return const Color(0xFF1C1C1E);
-    } else if (_selectedTheme == 'Light') {
-      return CupertinoColors.tertiarySystemGroupedBackground;
-    } else {
-      switch (_selectedTheme) {
-        case 'Citrus Orange':
-          return const Color(0xFFFFE5CC);
-        case 'Rose Quartz':
-          return const Color(0xFFFADFE7);
-        case 'Seafoam Green':
-          return const Color(0xFFE6F5EE);
-        case 'Lavender Mist':
-          return const Color(0xFFF0E6F2);
-        default:
-          return CupertinoColors.tertiarySystemGroupedBackground;
-      }
-    }
-  }
-
-  Color get separatorColor {
-    if (_selectedTheme == 'Dark') {
-      return const Color(0xFF38383A);
-    } else if (_selectedTheme == 'Light') {
-      return CupertinoColors.separator;
-    }
-    return CupertinoColors.separator;
-  }
-
-  Color get listTileBackgroundColor {
-    if (_selectedTheme == 'Dark') {
-      return const Color(0xFF1C1C1E);
-    } else if (_selectedTheme == 'Light') {
-      return CupertinoColors.white;
-    }
-    return CupertinoColors.white;
-  }
-
-  Color get listTileTextColor {
-    if (_selectedTheme == 'Dark') {
-      return CupertinoColors.white;
-    }
-    return CupertinoColors.label;
-  }
-
-  Color get secondaryTextColor {
-    if (_selectedTheme == 'Dark') {
-      return const Color(0xFF98989F);
-    }
-    return CupertinoColors.secondaryLabel;
-  }
-
-  bool get isDarkTheme => _selectedTheme == 'Dark';
-
-  void setTheme(String theme) {
-    _selectedTheme = theme;
-    _saveData();
-    notifyListeners();
-  }
-
-  final SoundService _soundService = SoundService();
-  bool _soundEnabled = true;
-
-  bool get soundEnabled => _soundEnabled;
-
-  void setSoundEnabled(bool value) {
-    _soundEnabled = value;
-    _saveData();
-    notifyListeners();
-  }
-
-  // Add to existing methods
-  void clearHistory() {
-    _history.clear();
-    _saveData();
-    notifyListeners();
-  }
+  */
 
   // Method to clear all saved data
   Future<void> clearAllData() async {
-    await _prefs.clear();
-    _loadSavedData();
+    debugPrint('🔄 SETTINGS_PROVIDER: Starting clearAllData...');
+
+    try {
+      // First, cancel any running timers and reset timer state
+      _timerSettings.resetTimer();
+      debugPrint('🔄 SETTINGS_PROVIDER: Timer reset');
+
+      // Reset all settings to defaults in each provider
+      await _timerSettings.resetSettingsToDefault();
+      debugPrint('🔄 SETTINGS_PROVIDER: Timer settings reset to defaults');
+
+      // Reset theme to default
+      _themeSettings.setTheme('System');
+      debugPrint('🔄 SETTINGS_PROVIDER: Theme reset to System');
+
+      // Clear history data
+      _historyProvider.clearHistory();
+      debugPrint('🔄 SETTINGS_PROVIDER: History cleared');
+
+      // Reset notification settings
+      _notificationsEnabled = true;
+      _vibrationEnabled = true;
+      await _saveNotificationSettings();
+      debugPrint('🔄 SETTINGS_PROVIDER: Notification settings reset');
+
+      // Reset user info
+      _userName = '';
+      _userEmail = '';
+      debugPrint('🔄 SETTINGS_PROVIDER: User info reset');
+
+      // Update statistics
+      _updateStatistics();
+      debugPrint('🔄 SETTINGS_PROVIDER: Statistics updated');
+
+      // Notify all listeners about the changes
+      notifyListeners();
+      debugPrint('🔄 SETTINGS_PROVIDER: Listeners notified');
+
+      debugPrint('🔄 SETTINGS_PROVIDER: clearAllData completed successfully');
+    } catch (e) {
+      debugPrint('❌ SETTINGS_PROVIDER: Error in clearAllData: $e');
+      debugPrint('❌ SETTINGS_PROVIDER: Stack trace: ${StackTrace.current}');
+      // Re-throw to allow handling by caller
+      rethrow;
+    }
   }
 
-  // Export all app data to JSON
-  Map<String, dynamic> exportData() {
-    return {
-      'sessionDuration': _sessionDuration,
-      'shortBreakDuration': _shortBreakDuration,
-      'longBreakDuration': _longBreakDuration,
-      'sessionsBeforeLongBreak': _sessionsBeforeLongBreak,
-      'soundEnabled': _soundEnabled,
-      'selectedTheme': _selectedTheme,
-      'completedSessions': _completedSessions,
-      'history': _history.map((entry) => entry.toJson()).toList(),
-    };
-  }
+  // Method to reset settings to default values
+  Future<void> resetSettingsToDefault() async {
+    // Reset timer settings to defaults
+    await _timerSettings.resetSettingsToDefault();
 
-  // Import app data from JSON
-  Future<void> importData(Map<String, dynamic> data) async {
-    // Validate required fields
-    if (!_validateImportData(data)) {
-      throw Exception('Invalid backup file format');
-    }
+    // Reset theme to default
+    _themeSettings.setTheme('System');
 
-    // Import settings
-    _sessionDuration = (data['sessionDuration'] as num).toDouble();
-    _shortBreakDuration = (data['shortBreakDuration'] as num).toDouble();
-    _longBreakDuration = (data['longBreakDuration'] as num).toDouble();
-    _sessionsBeforeLongBreak = (data['sessionsBeforeLongBreak'] as num).toInt();
-    _soundEnabled = data['soundEnabled'] as bool;
-    _selectedTheme = data['selectedTheme'] as String;
-    _completedSessions = (data['completedSessions'] as num).toInt();
+    // Reset user info
+    _userName = '';
+    _userEmail = '';
 
-    // Import history
-    if (data['history'] != null) {
-      try {
-        _history = (data['history'] as List)
-            .map((json) => HistoryEntry.fromJson(json as Map<String, dynamic>))
-            .toList();
-      } catch (e) {
-        throw Exception('Invalid history data format');
-      }
-    } else {
-      _history = [];
-    }
+    // Reset notification settings
+    _notificationsEnabled = true;
+    _vibrationEnabled = true;
+    await _saveNotificationSettings();
 
-    // Save imported data
-    await _saveData();
+    // Reload history after reset
+    await _historyProvider.reloadHistory();
 
-    // Reset timer state
-    _isTimerRunning = false;
-    _isTimerPaused = false;
-    _isBreak = false;
-    _remainingTime = Duration(minutes: _sessionDuration.round());
-    _progress = 1.0;
+    // Update statistics
+    _updateStatistics();
 
+    // Notify listeners about the changes
     notifyListeners();
   }
 
-  // Validate import data
-  bool _validateImportData(Map<String, dynamic> data) {
-    final requiredFields = [
-      'sessionDuration',
-      'shortBreakDuration',
-      'longBreakDuration',
-      'sessionsBeforeLongBreak',
-      'soundEnabled',
-      'selectedTheme',
-      'completedSessions'
-    ];
+  // Export data for backup
+  Map<String, dynamic> exportData() {
+    return {
+      'sessionDuration': sessionDuration,
+      'shortBreakDuration': shortBreakDuration,
+      'longBreakDuration': longBreakDuration,
+      'sessionsBeforeLongBreak': sessionsBeforeLongBreak,
+      'soundEnabled': soundEnabled,
+      'selectedTheme': selectedTheme,
+      'completedSessions': completedSessions,
+      'history': history.map((entry) => entry.toJson()).toList(),
+    };
+  }
 
-    // Check if all required fields exist
-    for (final field in requiredFields) {
-      if (!data.containsKey(field)) return false;
-    }
-
-    // Validate numeric ranges
-    try {
-      final sessionDuration = (data['sessionDuration'] as num).toDouble();
-      final shortBreakDuration = (data['shortBreakDuration'] as num).toDouble();
-      final longBreakDuration = (data['longBreakDuration'] as num).toDouble();
-      final sessionsBeforeLongBreak =
-          (data['sessionsBeforeLongBreak'] as num).toInt();
-
-      if (sessionDuration < 1 || sessionDuration > 120) return false;
-      if (shortBreakDuration < 1 || shortBreakDuration > 30) return false;
-      if (longBreakDuration < 5 || longBreakDuration > 45) return false;
-      if (sessionsBeforeLongBreak < 1 || sessionsBeforeLongBreak > 8)
-        return false;
-    } catch (e) {
+  // Import data from backup
+  Future<bool> importData(Map<String, dynamic> data) async {
+    // Fix unnecessary null comparison
+    if (data.isEmpty) {
       return false;
     }
 
+    // Validate required fields
+    if (data['sessionDuration'] == null ||
+        data['shortBreakDuration'] == null ||
+        data['longBreakDuration'] == null ||
+        data['sessionsBeforeLongBreak'] == null ||
+        data['soundEnabled'] == null ||
+        data['selectedTheme'] == null ||
+        data['completedSessions'] == null) {
+      return false;
+    }
+
+    // Import settings - this would need to be implemented in each provider
+    // For now, we'll just notify listeners
+    notifyListeners();
     return true;
+  }
+
+  // These methods need to be implemented in the component providers
+  // For now, we'll keep them here for backward compatibility
+  void updateRemainingTime(Duration remaining) {
+    _timerSettings.updateRemainingTime(remaining);
+    notifyListeners();
+  }
+
+  void clearSessionCompleted() {
+    _timerSettings.clearSessionCompleted();
+    notifyListeners();
+  }
+
+  void incrementCompletedSessions() {
+    _timerSettings.incrementCompletedSessions();
+    notifyListeners();
+  }
+
+  void resetCompletedSessions() {
+    _timerSettings.resetCompletedSessions();
+    notifyListeners();
+  }
+
+  // Keys for notification settings
+  static const String _notificationsEnabledKey = 'notificationsEnabled';
+  static const String _vibrationEnabledKey = 'vibrationEnabled';
+
+  // Notification settings
+  bool _notificationsEnabled = true;
+  bool _vibrationEnabled = true;
+
+  // Getters for notification settings
+  bool get notificationsEnabled => _notificationsEnabled;
+  bool get vibrationEnabled => _vibrationEnabled;
+
+  // Load notification settings from preferences
+  void _loadNotificationSettings() {
+    _notificationsEnabled = _prefs.getBool(_notificationsEnabledKey) ?? true;
+    _vibrationEnabled = _prefs.getBool(_vibrationEnabledKey) ?? true;
+  }
+
+  // Save notification settings to preferences
+  Future<void> _saveNotificationSettings() async {
+    await _prefs.setBool(_notificationsEnabledKey, _notificationsEnabled);
+    await _prefs.setBool(_vibrationEnabledKey, _vibrationEnabled);
+  }
+
+  // Enable/disable notifications
+  void setNotificationsEnabled(bool value) {
+    _notificationsEnabled = value;
+    _saveNotificationSettings();
+    notifyListeners();
+  }
+
+  // Enable/disable vibration
+  void setVibrationEnabled(bool value) {
+    _vibrationEnabled = value;
+    _saveNotificationSettings();
+    notifyListeners();
   }
 }

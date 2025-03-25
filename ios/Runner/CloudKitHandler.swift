@@ -1,7 +1,7 @@
 // This file is no longer needed as the functionality has been moved to AppDelegate.swift
 // The file can be deleted from the project. 
 
-private let container = CKContainer(identifier: "iCloud.com.naresh.pomoTimer")
+private let container = CKContainer(identifier: "iCloud.com.naresh.pomodorotimemaster")
 private lazy var privateDatabase = container.privateCloudDatabase
 private let recordType = "PomoTimerData"
 private let recordID = CKRecord.ID(recordName: "userSettings")

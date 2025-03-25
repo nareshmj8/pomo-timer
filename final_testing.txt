@@ -1,0 +1,109 @@
+**📌 Final Testing & App Store Submission Roadmap**
+
+---
+
+### **1️⃣ Check Code Coverage**  
+- Run **LCOV** to check overall test coverage.  
+- Identify **untested files** and core logic gaps.  
+
+### **2️⃣ Generate Automated Tests for Untested Code**  
+- Focus on **timer, notifications, RevenueCat, analytics, and settings**.  
+- Add unit, widget, and integration tests.  
+
+### **3️⃣ Run All Automated Tests**  
+- Execute **unit, widget, and integration tests**.  
+- Identify **failing tests and coverage gaps**.  
+
+### **4️⃣ Debug Failing Tests**  
+- Investigate root causes of failures.  
+- Provide **stack traces, logs, and fix recommendations**.  
+
+---
+
+### **📌 IAP Testing (RevenueCat)**  
+
+### **5️⃣ Test RevenueCat Integration**  
+✅ **Validate Subscription Offerings**  
+- Ensure all **plans (monthly, yearly, lifetime)** load correctly.  
+- Test UI when **offerings fail to load** (error handling).  
+
+✅ **Purchase Flow Testing**  
+- Test purchasing each plan using a **sandbox account**.  
+- Verify **entitlement unlocks immediately** after purchase.  
+- Ensure **purchases persist after app restart**.  
+
+✅ **Restore Purchases**  
+- Delete & reinstall app → Verify **previous purchases restore properly**.  
+- Test **"Restore Purchases" button** for edge cases.  
+
+✅ **Cancellation & Expiry Handling**  
+- Cancel subscription → Confirm **premium access is revoked after expiry**.  
+- Simulate **billing failure** → Ensure grace period & retry options.  
+
+✅ **RevenueCat Webhook & Error Handling**  
+- Validate webhook events for **purchase success, failure, renewal**.  
+- Test **retry logic** for failed transactions.  
+
+---
+
+### **📌 iCloud Sync Testing**  
+
+### **6️⃣ Test iCloud Sync Functionality**  
+✅ **Initial Setup & First Sync**  
+- Create test user → Check if **iCloud syncs settings & session history**.  
+
+✅ **Cross-Device Sync**  
+- Log in on **two devices (iPhone + iPad)** → Confirm instant data sync.  
+- Start session on iPhone → Verify if **progress appears on iPad**.  
+
+✅ **Offline & Reconnect Scenarios**  
+- Go **offline**, complete a Pomodoro session → Reconnect → Check sync.  
+- Edit settings offline → Verify changes sync properly when back online.  
+
+✅ **Edge Case Handling**  
+- Simulate **conflicting edits from multiple devices** → Confirm resolution strategy.  
+- Delete data → Verify if **iCloud restores or handles errors correctly**.  
+
+---
+
+### **📌 UI, Performance & Security Testing**  
+
+### **7️⃣ UI Testing Across Devices**  
+- Test on **iPhone SE (small screens) and iPad Pro (large screens)**.  
+- Validate **Dark mode compatibility, animations, and responsiveness**.  
+
+### **8️⃣ Performance Testing**  
+- Measure **app startup time** & memory usage.  
+- Identify bottlenecks & suggest optimizations.  
+
+### **9️⃣ Security Testing**  
+- Validate **secure storage of sensitive data**.  
+- Test **API authentication & token handling**.  
+- Check **jailbreak/root detection & prevention**.  
+
+---
+
+### **📌 Final QA & App Store Submission**  
+
+### **🔟 Regression Testing**  
+- Run a **full regression test** to confirm stability.  
+- Ensure no **new bugs from recent fixes**.  
+
+### **1️⃣1️⃣ Generate Test Summary Report**  
+- Include:  
+  ✅ Passed & failed tests  
+  ✅ Code coverage %  
+  ✅ Performance & security findings  
+  ✅ UI/UX issues & final recommendations  
+
+### **1️⃣2️⃣ Prepare for App Store Submission**  
+- Ensure **all assets (app icon, screenshots, description, privacy policy)** are ready.  
+- Verify compliance with **App Store Review Guidelines**.  
+- Submit the app and monitor **App Store review feedback**.  
+
+---
+
+### **📌 Additional Notes**  
+- **Test files**: Can be slightly longer (up to 500 lines) as they often contain many similar test cases.  
+
+This roadmap **fully integrates IAP & iCloud testing** while keeping the **release timeline structured**. ✅

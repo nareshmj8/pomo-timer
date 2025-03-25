@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:pomo_timer/providers/settings_provider.dart';
+import 'package:pomodoro_timemaster/providers/settings_provider.dart';
 
 class AppearanceSettingsScreen extends StatelessWidget {
   const AppearanceSettingsScreen({super.key});

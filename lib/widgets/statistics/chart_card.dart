@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../utils/responsive_utils.dart';
+import '../../utils/theme_constants.dart';
 
 class ChartCard extends StatefulWidget {
   final String title;
@@ -70,37 +72,65 @@ class _ChartCardState extends State<ChartCard> {
   Widget build(BuildContext context) {
     return Consumer<SettingsProvider>(
       builder: (context, settings, child) {
+        final isTablet = ResponsiveUtils.isTablet(context);
+        final isLargeTablet = ResponsiveUtils.isLargeTablet(context);
+
+        // Responsive sizing
+        final cardPadding = isTablet
+            ? ThemeConstants.largeSpacing - 4
+            : ThemeConstants.mediumSpacing;
+
+        final titleFontSize = isTablet
+            ? ThemeConstants.largeFontSize
+            : ThemeConstants.mediumFontSize + 2;
+
+        final labelFontSize = isTablet
+            ? ThemeConstants.smallFontSize + 1
+            : ThemeConstants.smallFontSize;
+
+        final legendFontSize = isTablet
+            ? ThemeConstants.smallFontSize
+            : ThemeConstants.smallFontSize - 1;
+
+        final chartHeight = isLargeTablet
+            ? 280.0
+            : isTablet
+                ? 250.0
+                : 220.0;
+
+        final barWidth = isTablet ? 18.0 : 14.0;
+        final selectedBarWidth = isTablet ? 22.0 : 18.0;
+
+        final borderRadius =
+            isTablet ? ThemeConstants.largeRadius : ThemeConstants.mediumRadius;
+
         final barGradient = LinearGradient(
           colors: [
             CupertinoColors.systemBlue,
-            CupertinoColors.systemBlue.withOpacity(0.8),
+            CupertinoColors.systemBlue.withAlpha((0.8 * 255).toInt()),
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         );
 
-        // Create reversed data for display (latest on right)
-        final List<double> displayData = widget.data.reversed.toList();
-        final List<String> displayTitles = widget.titles.reversed.toList();
-        final bool Function(int) isLatestReversed =
-            (index) => widget.isLatest(widget.data.length - 1 - index);
+        // Use data as-is without reversing (latest should already be on the right)
+        final List<double> displayData = widget.data.toList();
+        final List<String> displayTitles = widget.titles.toList();
+
+        bool isLatestReversed(int index) {
+          return widget.isLatest(index);
+        }
 
         return Container(
-          padding: const EdgeInsets.all(20.0),
+          padding: EdgeInsets.all(cardPadding),
           decoration: BoxDecoration(
             color: settings.listTileBackgroundColor,
-            borderRadius: BorderRadius.circular(16.0),
-            boxShadow: [
-              BoxShadow(
-                color: settings.separatorColor.withOpacity(0.12),
-                spreadRadius: 0,
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(borderRadius),
+            boxShadow: ThemeConstants.getShadow(settings.separatorColor),
             border: Border.all(
-              color: settings.separatorColor.withOpacity(0.15),
-              width: 1.0,
+              color: settings.separatorColor
+                  .withAlpha(((ThemeConstants.lowOpacity / 2) * 255).toInt()),
+              width: ThemeConstants.standardBorder,
             ),
           ),
           child: Column(
@@ -112,29 +142,36 @@ class _ChartCardState extends State<ChartCard> {
                   Text(
                     widget.title,
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: titleFontSize,
                       fontWeight: FontWeight.w600,
                       color: settings.textColor,
                       letterSpacing: -0.5,
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet
+                          ? ThemeConstants.smallSpacing + 2
+                          : ThemeConstants.smallSpacing,
+                      vertical: isTablet
+                          ? ThemeConstants.tinySpacing + 1
+                          : ThemeConstants.tinySpacing,
                     ),
                     decoration: BoxDecoration(
-                      color: settings.secondaryBackgroundColor.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(8),
+                      color: settings.secondaryBackgroundColor.withAlpha(
+                          ((ThemeConstants.lowOpacity + 0.2) * 255).toInt()),
+                      borderRadius:
+                          BorderRadius.circular(ThemeConstants.smallRadius),
                       border: Border.all(
-                        color: settings.separatorColor.withOpacity(0.1),
-                        width: 1.0,
+                        color: settings.separatorColor.withAlpha(
+                            (ThemeConstants.veryLowOpacity * 255).toInt()),
+                        width: ThemeConstants.thinBorder,
                       ),
                     ),
                     child: Text(
                       widget.showHours ? 'Duration' : 'Sessions',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: labelFontSize,
                         fontWeight: FontWeight.w500,
                         color: settings.secondaryTextColor,
                         letterSpacing: -0.3,
@@ -143,41 +180,47 @@ class _ChartCardState extends State<ChartCard> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(
+                  height: isTablet
+                      ? ThemeConstants.largeSpacing
+                      : ThemeConstants.mediumSpacing),
               Row(
                 children: [
                   Container(
-                    width: 10,
-                    height: 10,
+                    width: isTablet ? 12 : 10,
+                    height: isTablet ? 12 : 10,
                     decoration: BoxDecoration(
                       color: CupertinoColors.systemGreen,
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(isTablet ? 6 : 5),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: ThemeConstants.smallSpacing),
                   Text(
                     'Current',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: legendFontSize,
                       color: settings.secondaryTextColor,
                       letterSpacing: -0.3,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(width: 20),
+                  SizedBox(
+                      width: isTablet
+                          ? ThemeConstants.mediumSpacing
+                          : ThemeConstants.mediumSpacing - 4),
                   Container(
-                    width: 10,
-                    height: 10,
+                    width: isTablet ? 12 : 10,
+                    height: isTablet ? 12 : 10,
                     decoration: BoxDecoration(
                       gradient: barGradient,
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(isTablet ? 6 : 5),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: ThemeConstants.smallSpacing),
                   Text(
                     'Previous',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: legendFontSize,
                       color: settings.secondaryTextColor,
                       letterSpacing: -0.3,
                       fontWeight: FontWeight.w500,
@@ -185,28 +228,33 @@ class _ChartCardState extends State<ChartCard> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
               SizedBox(
-                height: 220,
+                  height: isTablet
+                      ? ThemeConstants.mediumSpacing
+                      : ThemeConstants.mediumSpacing - 4),
+              SizedBox(
+                height: chartHeight,
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
+                  padding: const EdgeInsets.only(right: ThemeConstants.smallSpacing),
                   child: BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
                       maxY: maxY,
                       minY: 0,
-                      groupsSpace: 20,
+                      groupsSpace: isTablet ? 24 : 20,
                       barTouchData: BarTouchData(
                         enabled: true,
                         touchTooltipData: BarTouchTooltipData(
                           fitInsideHorizontally: true,
                           fitInsideVertically: true,
                           tooltipBorder: BorderSide(
-                            color: settings.separatorColor.withOpacity(0.1),
-                            width: 1,
+                            color: settings.separatorColor.withAlpha(
+                                (ThemeConstants.veryLowOpacity * 255).toInt()),
+                            width: ThemeConstants.thinBorder,
                           ),
-                          tooltipPadding: const EdgeInsets.all(8),
-                          tooltipMargin: 8,
+                          tooltipPadding:
+                              const EdgeInsets.all(ThemeConstants.smallSpacing),
+                          tooltipMargin: ThemeConstants.smallSpacing,
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             return BarTooltipItem(
                               _formatValue(displayData[group.x.toInt()],
@@ -214,7 +262,9 @@ class _ChartCardState extends State<ChartCard> {
                               TextStyle(
                                 color: settings.textColor,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: isTablet
+                                    ? ThemeConstants.smallFontSize + 2
+                                    : ThemeConstants.smallFontSize + 1,
                               ),
                             );
                           },
@@ -242,16 +292,20 @@ class _ChartCardState extends State<ChartCard> {
                               color: isCurrentBar
                                   ? CupertinoColors.systemGreen
                                   : null,
-                              width: isSelected ? 18 : 14,
+                              width: isSelected ? selectedBarWidth : barWidth,
                               borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(6),
-                                bottom: Radius.circular(2),
+                                top: Radius.circular(
+                                    ThemeConstants.smallRadius - 2),
+                                bottom: Radius.circular(
+                                    ThemeConstants.tinySpacing - 2),
                               ),
                               backDrawRodData: BackgroundBarChartRodData(
                                 show: true,
                                 toY: maxY,
-                                color:
-                                    settings.separatorColor.withOpacity(0.03),
+                                color: settings.separatorColor.withAlpha(
+                                    ((ThemeConstants.veryLowOpacity - 0.07) *
+                                            255)
+                                        .toInt()),
                               ),
                             ),
                           ],
@@ -263,8 +317,10 @@ class _ChartCardState extends State<ChartCard> {
                         horizontalInterval: calculateInterval(maxY),
                         getDrawingHorizontalLine: (value) {
                           return FlLine(
-                            color: settings.separatorColor.withOpacity(0.08),
-                            strokeWidth: 1,
+                            color: settings.separatorColor.withAlpha(
+                                ((ThemeConstants.veryLowOpacity - 0.02) * 255)
+                                    .toInt()),
+                            strokeWidth: ThemeConstants.thinBorder,
                             dashArray: [6, 4],
                           );
                         },
@@ -282,35 +338,39 @@ class _ChartCardState extends State<ChartCard> {
                             showTitles: true,
                             getTitlesWidget: (value, meta) {
                               return Padding(
-                                padding: const EdgeInsets.only(top: 12.0),
+                                padding: EdgeInsets.only(
+                                    top: isTablet
+                                        ? ThemeConstants.mediumSpacing - 4
+                                        : ThemeConstants.smallSpacing + 4),
                                 child: Text(
                                   displayTitles[value.toInt()],
                                   style: TextStyle(
                                     color: settings.secondaryTextColor,
-                                    fontSize: 13,
+                                    fontSize: labelFontSize,
                                     fontWeight: FontWeight.w500,
                                     letterSpacing: -0.3,
                                   ),
                                 ),
                               );
                             },
-                            reservedSize: 32,
+                            reservedSize: isTablet ? 40 : 32,
                           ),
                         ),
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 52,
+                            reservedSize: isTablet ? 60 : 52,
                             interval: calculateInterval(maxY),
                             getTitlesWidget: (value, meta) {
                               if (value == 0) return const SizedBox.shrink();
                               return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
+                                padding: const EdgeInsets.only(
+                                    right: ThemeConstants.smallSpacing),
                                 child: Text(
                                   _formatValue(value),
                                   style: TextStyle(
                                     color: settings.secondaryTextColor,
-                                    fontSize: 13,
+                                    fontSize: labelFontSize,
                                     fontWeight: FontWeight.w500,
                                     letterSpacing: -0.3,
                                   ),
@@ -321,12 +381,12 @@ class _ChartCardState extends State<ChartCard> {
                         ),
                       ),
                     ),
-                    swapAnimationDuration: const Duration(milliseconds: 300),
-                    swapAnimationCurve: Curves.easeInOut,
+                    duration: ThemeConstants.mediumAnimation,
+                    curve: Curves.easeInOut,
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: ThemeConstants.smallSpacing),
             ],
           ),
         );

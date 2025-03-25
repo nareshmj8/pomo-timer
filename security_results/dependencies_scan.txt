@@ -1,0 +1,45 @@
+Showing outdated packages.
+[*] indicates versions that are not the latest available.
+
+Package Name                                    Current  Upgradable  Resolvable  Latest  
+
+direct dependencies:                           
+confetti                                        *0.7.0   *0.7.0      0.8.0       0.8.0   
+file_picker                                     *9.0.2   9.2.1       9.2.1       9.2.1   
+flutter_local_notifications                     *16.3.3  *16.3.3     19.0.0      19.0.0  
+intl                                            *0.19.0  *0.19.0     *0.19.0     0.20.2  
+purchases_flutter                               *6.30.2  *6.30.2     8.6.1       8.6.1   
+timezone                                        *0.9.4   *0.9.4      0.10.0      0.10.0  
+
+dev_dependencies:                              
+device_info_plus                                *9.1.2   *9.1.2      11.3.3      11.3.3  
+flutter_lints                                   *2.0.3   *2.0.3      5.0.0       5.0.0   
+
+transitive dependencies:                       
+args                                            *2.6.0   2.7.0       2.7.0       2.7.0   
+async                                           *2.12.0  *2.12.0     *2.12.0     2.13.0  
+flutter_local_notifications_linux               *4.0.1   *4.0.1      6.0.0       6.0.0   
+flutter_local_notifications_platform_interface  *7.2.0   *7.2.0      9.0.0       9.0.0   
+flutter_local_notifications_windows             -        -           1.0.0       1.0.0   
+freezed_annotation                              *2.4.4   *2.4.4      *2.4.4      3.0.0   
+material_color_utilities                        *0.11.1  *0.11.1     *0.11.1     0.12.0  
+win32                                           *5.11.0  5.12.0      5.12.0      5.12.0  
+
+transitive dev_dependencies:                   
+fake_async                                      *1.3.2   *1.3.2      *1.3.2      1.3.3   
+js                                              *0.6.7   0.7.2       0.7.2       0.7.2   (discontinued)  
+leak_tracker                                    *10.0.8  *10.0.8     *10.0.8     10.0.9  
+lints                                           *2.1.1   *2.1.1      5.1.1       5.1.1   
+package_config                                  *2.1.1   2.2.0       2.2.0       2.2.0   
+vm_service                                      *14.3.1  *14.3.1     *14.3.1     15.0.0  
+webdriver                                       *3.0.4   *3.0.4      *3.0.4      3.1.0   
+win32_registry                                  *1.1.5   *1.1.5      2.1.0       2.1.0   
+
+5 upgradable dependencies are locked (in pubspec.lock) to older versions.
+To update these dependencies, use `flutter pub upgrade`.
+
+10  dependencies are constrained to versions that are older than a resolvable version.
+To update these dependencies, edit pubspec.yaml, or run `flutter pub upgrade --major-versions`.
+
+js
+    Package js has been discontinued. See https://dart.dev/go/package-discontinue

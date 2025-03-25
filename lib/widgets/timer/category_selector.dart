@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../../providers/settings_provider.dart';
+import '../../utils/responsive_utils.dart';
+import '../../utils/theme_constants.dart';
 
 class CategorySelector extends StatelessWidget {
   final SettingsProvider settings;
@@ -13,25 +15,49 @@ class CategorySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = ResponsiveUtils.isSmallScreen(context);
+    final isTablet = ResponsiveUtils.isTablet(context);
+
+    // Responsive font sizes
+    final labelFontSize = isSmallScreen
+        ? ThemeConstants.mediumFontSize - 1
+        : isTablet
+            ? ThemeConstants.mediumFontSize + 2
+            : ThemeConstants.mediumFontSize;
+
+    final categoryFontSize = isSmallScreen
+        ? ThemeConstants.mediumFontSize - 1
+        : isTablet
+            ? ThemeConstants.mediumFontSize + 1
+            : ThemeConstants.mediumFontSize;
+
+    // Responsive padding
+    final buttonPadding = isSmallScreen
+        ? const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0)
+        : isTablet
+            ? const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0)
+            : const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0);
+
+    // Responsive border radius
+    final borderRadius =
+        isTablet ? ThemeConstants.mediumRadius : ThemeConstants.smallRadius;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           'Category:',
           style: TextStyle(
-            fontSize: 17,
+            fontSize: labelFontSize,
             fontWeight: FontWeight.w500,
             color: settings.textColor,
             letterSpacing: -0.5,
           ),
         ),
         CupertinoButton(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12.0,
-            vertical: 8.0,
-          ),
+          padding: buttonPadding,
           color: settings.listTileBackgroundColor,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(borderRadius),
           onPressed: () => showCupertinoModalPopup<void>(
             context: context,
             builder: (BuildContext context) {
@@ -40,7 +66,9 @@ class CategorySelector extends StatelessWidget {
                   'Select Category',
                   style: TextStyle(
                     color: settings.textColor,
-                    fontSize: 13,
+                    fontSize: isTablet
+                        ? ThemeConstants.mediumFontSize
+                        : ThemeConstants.smallFontSize,
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.2,
                   ),
@@ -49,7 +77,9 @@ class CategorySelector extends StatelessWidget {
                   'Choose a category for your focus session',
                   style: TextStyle(
                     color: settings.secondaryTextColor,
-                    fontSize: 12,
+                    fontSize: isTablet
+                        ? ThemeConstants.smallFontSize
+                        : ThemeConstants.smallFontSize - 1,
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -67,7 +97,9 @@ class CategorySelector extends StatelessWidget {
                             color: category == settings.selectedCategory
                                 ? CupertinoColors.activeBlue
                                 : settings.textColor,
-                            fontSize: 17,
+                            fontSize: isTablet
+                                ? ThemeConstants.mediumFontSize + 1
+                                : ThemeConstants.mediumFontSize,
                             fontWeight: category == settings.selectedCategory
                                 ? FontWeight.w600
                                 : FontWeight.w400,
@@ -86,6 +118,9 @@ class CategorySelector extends StatelessWidget {
                     style: TextStyle(
                       color: settings.textColor,
                       fontWeight: FontWeight.w600,
+                      fontSize: isTablet
+                          ? ThemeConstants.mediumFontSize
+                          : ThemeConstants.mediumFontSize - 1,
                     ),
                   ),
                 ),
@@ -97,23 +132,34 @@ class CategorySelector extends StatelessWidget {
             children: [
               Text(
                 settings.selectedCategory,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: TextStyle(
+                  fontSize: categoryFontSize,
                   color: CupertinoColors.activeBlue,
                   fontWeight: FontWeight.w500,
                   letterSpacing: -0.3,
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(
+                  width: isTablet
+                      ? ThemeConstants.smallSpacing
+                      : ThemeConstants.tinySpacing + 2),
               Container(
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(isTablet
+                    ? ThemeConstants.smallSpacing
+                    : ThemeConstants.tinySpacing),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.activeBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
+                  color: CupertinoColors.activeBlue.withAlpha(
+                      ThemeConstants.opacityToAlpha(
+                          ThemeConstants.veryLowOpacity)),
+                  borderRadius: BorderRadius.circular(isTablet
+                      ? ThemeConstants.smallSpacing
+                      : ThemeConstants.tinySpacing + 2),
                 ),
-                child: const Icon(
+                child: Icon(
                   CupertinoIcons.chevron_down,
-                  size: 14,
+                  size: isTablet
+                      ? ThemeConstants.smallIconSize
+                      : ThemeConstants.smallIconSize - 2,
                   color: CupertinoColors.activeBlue,
                 ),
               ),

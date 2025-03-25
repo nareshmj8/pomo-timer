@@ -13,14 +13,16 @@ class DataSettingsPage extends StatefulWidget {
   const DataSettingsPage({Key? key}) : super(key: key);
 
   @override
-  _DataSettingsPageState createState() => _DataSettingsPageState();
+  DataSettingsPageState createState() => DataSettingsPageState();
 }
 
-class _DataSettingsPageState extends State<DataSettingsPage> {
+class DataSettingsPageState extends State<DataSettingsPage> {
   final SyncService _syncService = SyncService();
-  bool _iCloudSyncEnabled = true;
+  bool _iCloudSyncEnabled = false;
   bool _isSyncing = false;
   String _lastSyncedTime = 'Not synced yet';
+  bool _isPremium = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
@@ -32,10 +34,28 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
   Future<void> _loadSyncPreferences() async {
     final syncEnabled = await _syncService.isSyncEnabled();
     final lastSynced = await _syncService.getLastSyncedTime();
+    final isPremium = _syncService.isPremium;
+    final errorMessage = _syncService.errorMessage;
 
     setState(() {
       _iCloudSyncEnabled = syncEnabled;
       _lastSyncedTime = lastSynced;
+      _isPremium = isPremium;
+      _errorMessage = errorMessage;
+    });
+
+    // Listen for changes in sync status
+    _syncService.addListener(_onSyncServiceChanged);
+  }
+
+  // Handle sync service changes
+  void _onSyncServiceChanged() {
+    setState(() {
+      _iCloudSyncEnabled = _syncService.iCloudSyncEnabled;
+      _isSyncing = _syncService.isSyncing;
+      _lastSyncedTime = _syncService.lastSyncedTime;
+      _isPremium = _syncService.isPremium;
+      _errorMessage = _syncService.errorMessage;
     });
   }
 
@@ -77,15 +97,48 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
       // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sync failed. Please try again.'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(_errorMessage.isNotEmpty
+                ? _errorMessage
+                : 'Sync failed. Please try again.'),
+            duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.red,
           ),
         );
       }
     }
+  }
+
+  // Show premium upgrade dialog
+  void _showPremiumUpgradeDialog() {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Premium Feature'),
+          content: const Text(
+              'iCloud Sync is a premium feature. Upgrade to Premium to sync your data across devices.'),
+          actions: <Widget>[
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              child: const Text('Upgrade'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Navigate to premium screen
+                Navigator.of(context).pushNamed('/premium');
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -121,23 +174,63 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'iCloud Sync',
-                        style: TextStyle(fontSize: 16),
+                      Row(
+                        children: [
+                          const Text(
+                            'iCloud Sync',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          if (!_isPremium)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.systemYellow,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'PREMIUM',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: CupertinoColors.black,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       CupertinoSwitch(
                         value: _iCloudSyncEnabled,
                         onChanged: (value) async {
-                          await _syncService.setSyncEnabled(value);
-                          setState(() {
-                            _iCloudSyncEnabled = value;
-                          });
+                          if (value && !_isPremium) {
+                            _showPremiumUpgradeDialog();
+                          } else {
+                            await _syncService.setSyncEnabled(value);
+                          }
                         },
                       ),
                     ],
                   ),
                 ),
               ),
+
+              const SizedBox(height: 8),
+
+              // Premium required message
+              if (!_isPremium)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'iCloud Sync is a premium feature. Upgrade to Premium to sync your data across devices.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: CupertinoColors.systemGrey,
+                    ),
+                  ),
+                ),
 
               const SizedBox(height: 16),
 
@@ -155,7 +248,11 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
                     children: [
                       CupertinoButton.filled(
                         onPressed:
-                            _iCloudSyncEnabled && !_isSyncing ? _syncNow : null,
+                            _isPremium && _iCloudSyncEnabled && !_isSyncing
+                                ? _syncNow
+                                : _isPremium
+                                    ? null
+                                    : _showPremiumUpgradeDialog,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: _isSyncing
                             ? const SizedBox(
@@ -167,7 +264,8 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
                                       Colors.white),
                                 ),
                               )
-                            : const Text('Sync Now'),
+                            : Text(
+                                _isPremium ? 'Sync Now' : 'Upgrade to Premium'),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -186,5 +284,11 @@ class _DataSettingsPageState extends State<DataSettingsPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _syncService.removeListener(_onSyncServiceChanged);
+    super.dispose();
   }
 }

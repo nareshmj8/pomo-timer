@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:pomo_timer/providers/settings_provider.dart';
+import 'package:pomodoro_timemaster/providers/settings_provider.dart';
 
 class TimerSettingsScreen extends StatelessWidget {
   const TimerSettingsScreen({super.key});
@@ -10,8 +10,8 @@ class TimerSettingsScreen extends StatelessWidget {
     return Consumer<SettingsProvider>(
       builder: (context, settings, child) => CupertinoPageScaffold(
         backgroundColor: CupertinoColors.black,
-        navigationBar: CupertinoNavigationBar(
-          middle: const Text(
+        navigationBar: const CupertinoNavigationBar(
+          middle: Text(
             'Timer Settings',
             style: TextStyle(
               fontSize: 17,
@@ -20,7 +20,7 @@ class TimerSettingsScreen extends StatelessWidget {
             ),
           ),
           backgroundColor: CupertinoColors.black,
-          border: const Border(
+          border: Border(
             bottom: BorderSide(
               color: CupertinoColors.white,
               width: 0.5,

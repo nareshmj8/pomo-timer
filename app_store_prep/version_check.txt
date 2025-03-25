@@ -1,0 +1,14 @@
+Current version in pubspec.yaml: 1.0.0+1
+Version name: 1.0.0
+Version code: 1
+Suggested new version: 1.0.0+2
+Version update skipped. Continuing with current version: 1.0.0+1
+Current version in pubspec.yaml: 1.0.0+1
+Version name: 1.0.0
+Version code: 1
+Suggested new version: 1.0.0+2
+Current version in pubspec.yaml: 1.0.0+1
+Version name: 1.0.0
+Version code: 1
+Suggested new version: 1.0.0+2
+Version update skipped. Continuing with current version: 1.0.0+1

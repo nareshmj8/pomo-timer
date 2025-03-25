@@ -4,6 +4,7 @@ import 'icloud_sync_test.dart' as icloud_sync_test;
 import 'multi_device_sync_test.dart' as multi_device_sync_test;
 import 'cloudkit_native_test.dart' as cloudkit_native_test;
 import 'background_sync_test.dart' as background_sync_test;
+import 'comprehensive_icloud_sync_test.dart' as comprehensive_icloud_sync_test;
 
 void main() {
   group('iCloud Sync Integration Tests', () {
@@ -20,5 +21,9 @@ void main() {
 
   group('Background Sync Tests', () {
     background_sync_test.main();
+  });
+
+  group('Comprehensive iCloud Sync Tests', () {
+    comprehensive_icloud_sync_test.main();
   });
 }

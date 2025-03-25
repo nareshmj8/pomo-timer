@@ -1,0 +1,32 @@
+lib//providers/settings/theme_settings_provider.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//providers/settings/timer_settings_provider.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//providers/settings/history_provider.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//providers/settings_provider.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//test_app.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//utils/theme_constants.dart:  static const List<BoxShadow> shadow = [
+lib//screens/settings/testing/icloud_sync_test_helper.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//screens/settings/testing/validation_checklist.md:- [ ] Verify that sensitive data is properly encrypted before syncing
+lib//screens/iap_test_screen.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//screens/legal/terms_conditions_screen.dart:                    'To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, or use, arising out of or in connection with these Terms or your use of the App.',
+lib//screens/legal/terms_conditions_screen.dart:                    'These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to its conflict of law provisions.',
+lib//screens/premium/README.md:   - Or use the debug menu by shaking the device and selecting "RevenueCat Tests"
+lib//screens/premium/testing/validation_checklist.md:  - [ ] Family sharing entitlements are correctly recognized (if applicable)
+lib//screens/premium/testing/validation_checklist.md:  - [ ] UI correctly reflects family sharing status
+lib//screens/premium/testing/final_test_report.md:4. **Family Sharing Support**: Improve handling of family shared purchases
+lib//screens/premium/components/pricing_container.dart:    final shadowBlurRadius = isTablet ? 20.0 : 15.0;
+lib//screens/premium/components/pricing_container.dart:    final shadowOffset = isTablet ? const Offset(0, 6) : const Offset(0, 4);
+lib//screens/premium/components/pricing_container.dart:            blurRadius: shadowBlurRadius,
+lib//screens/premium/components/pricing_container.dart:            offset: shadowOffset,
+lib//screens/premium/components/premium_footer.dart:          // Enhanced subscribe button with subtle shadow
+lib//screens/premium_success_modal.dart:              shape: BoxShape.circle,
+lib//screens/splash_screen.dart:                          shape: BoxShape.circle,
+lib//main.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//theme/theme_provider.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//home_screen.dart:              shadowColor: Colors.transparent,
+lib//services/revenue_cat_service.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//services/notification/subscription_notifications.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//services/notification_service.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//services/sync_service.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//services/sync/sync_data_handler.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//services/logging_service.dart:import 'package:shared_preferences/shared_preferences.dart';
+lib//widgets/timer/timer_display.dart:                        shape: BoxShape.circle,

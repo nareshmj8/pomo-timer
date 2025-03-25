@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:pomo_timer/models/statistics_data.dart';
+import 'package:pomodoro_timemaster/models/statistics_data.dart';
+import 'package:pomodoro_timemaster/utils/theme_constants.dart';
 
 class StatisticsCards extends StatelessWidget {
   final StatisticsData statsData;
@@ -60,7 +61,8 @@ class StatisticsCards extends StatelessWidget {
           borderRadius: BorderRadius.circular(10.0),
           boxShadow: [
             BoxShadow(
-              color: CupertinoColors.systemGrey6.withOpacity(0.2),
+              color: CupertinoColors.systemGrey6
+                  .withAlpha(ThemeConstants.opacityToAlpha(0.2)),
               spreadRadius: 0,
               blurRadius: 4,
               offset: const Offset(0, 1),

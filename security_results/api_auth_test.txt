@@ -1,0 +1,1 @@
+lib//screens/premium/controllers/premium_controller.dart:              e.toString().contains('authentication')) {

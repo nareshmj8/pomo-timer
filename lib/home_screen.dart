@@ -1,14 +1,17 @@
 // Importing necessary packages for Flutter UI, animations, and custom screens
 import 'package:flutter/material.dart'; // Core Flutter Material Design widgets
 import 'package:flutter/cupertino.dart'; // Cupertino (iOS-style) widgets for platform-specific icons
-import 'package:pomo_timer/screens/timer_screen.dart'; // Custom TimerScreen widget
-import 'package:pomo_timer/screens/statistics_screen.dart'; // Custom StatisticsScreen widget
-import 'package:pomo_timer/screens/history_screen.dart'; // Custom HistoryScreen widget
-import 'package:pomo_timer/screens/settings_screen.dart'; // Custom SettingsScreen widget
-import 'package:pomo_timer/screens/premium_screen.dart'; // Custom PremiumScreen widget
+import 'package:pomodoro_timemaster/screens/timer_screen.dart'; // Custom TimerScreen widget
+import 'package:pomodoro_timemaster/screens/statistics_screen.dart'; // Custom StatisticsScreen widget
+import 'package:pomodoro_timemaster/screens/history_screen.dart'; // Custom HistoryScreen widget
+import 'package:pomodoro_timemaster/screens/settings/settings_screen.dart'; // Custom SettingsScreen widget
+import 'package:pomodoro_timemaster/screens/premium_screen.dart'; // Custom PremiumScreen widget
 import 'package:animations/animations.dart'; // Package for custom animations (e.g., PageTransitionSwitcher)
 import 'package:provider/provider.dart';
-import 'package:pomo_timer/providers/settings_provider.dart';
+import 'package:pomodoro_timemaster/providers/settings_provider.dart';
+import 'package:pomodoro_timemaster/widgets/sync_status_indicator.dart'; // New import for sync status badge
+// New import for sync service
+// Keep IAP service import for functionality
 
 // Defining HomeScreen as a StatefulWidget since it manages state (e.g., selected tab index)
 class HomeScreen extends StatefulWidget {
@@ -36,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen>
     const StatisticsScreen(), // Screen for viewing statistics
     const HistoryScreen(), // Screen for viewing past sessions
     const SettingsScreen(), // Screen for app settings
-    const PremiumScreen(), // Screen for premium features or upsell
+    const PremiumScreen(), // Screen for premium features
   ];
 
   // Initializes state when the widget is first created
@@ -92,97 +95,119 @@ class _HomeScreenState extends State<HomeScreen>
               child: _screens[_selectedIndex],
             ),
           ),
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: settings.selectedTheme == 'Light'
-                      ? CupertinoColors.separator
-                      : settings.backgroundColor
-                          .withAlpha(77), // 0.3 * 255 ≈ 77
-                  width: 0.5,
+          bottomNavigationBar: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: settings.selectedTheme == 'Light'
+                          ? CupertinoColors.separator
+                          : settings.backgroundColor
+                              .withAlpha(77), // 0.3 * 255 ≈ 77
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: NavigationBar(
+                  backgroundColor: settings.selectedTheme == 'Light'
+                      ? CupertinoColors.systemBackground
+                      : settings.backgroundColor,
+                  surfaceTintColor: Colors.transparent,
+                  indicatorColor: settings.selectedTheme == 'Light'
+                      ? CupertinoColors.systemFill
+                      : settings.backgroundColor.withAlpha(77),
+                  shadowColor: Colors.transparent,
+                  height: 65,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  animationDuration: const Duration(milliseconds: 400),
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (index) {
+                    setState(() {
+                      _previousIndex = _selectedIndex;
+                      _selectedIndex = index;
+                      _animationController.forward(from: 0);
+                    });
+                  },
+                  destinations: [
+                    NavigationDestination(
+                      icon: Icon(
+                        CupertinoIcons.timer,
+                        color: _selectedIndex == 0
+                            ? CupertinoColors.activeBlue
+                            : settings.selectedTheme == 'Light'
+                                ? CupertinoColors.inactiveGray
+                                : settings.textColor
+                                    .withAlpha(204), // 0.8 * 255 ≈ 204
+                      ),
+                      label: 'Timer',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(
+                        CupertinoIcons.graph_square,
+                        color: _selectedIndex == 1
+                            ? CupertinoColors.activeBlue
+                            : settings.selectedTheme == 'Light'
+                                ? CupertinoColors.inactiveGray
+                                : settings.textColor.withAlpha(204),
+                      ),
+                      label: 'Statistics',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(
+                        CupertinoIcons.clock,
+                        color: _selectedIndex == 2
+                            ? CupertinoColors.activeBlue
+                            : settings.selectedTheme == 'Light'
+                                ? CupertinoColors.inactiveGray
+                                : settings.textColor.withAlpha(204),
+                      ),
+                      label: 'History',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(
+                        CupertinoIcons.settings,
+                        color: _selectedIndex == 3
+                            ? CupertinoColors.activeBlue
+                            : settings.selectedTheme == 'Light'
+                                ? CupertinoColors.inactiveGray
+                                : settings.textColor.withAlpha(204),
+                      ),
+                      label: 'Settings',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(
+                        CupertinoIcons.star,
+                        color: _selectedIndex == 4
+                            ? CupertinoColors.activeBlue
+                            : settings.selectedTheme == 'Light'
+                                ? CupertinoColors.inactiveGray
+                                : settings.textColor.withAlpha(204),
+                      ),
+                      label: 'Premium',
+                    ),
+                  ],
                 ),
               ),
-            ),
-            child: NavigationBar(
-              backgroundColor: settings.selectedTheme == 'Light'
-                  ? CupertinoColors.systemBackground
-                  : settings.backgroundColor,
-              surfaceTintColor: Colors.transparent,
-              indicatorColor: settings.selectedTheme == 'Light'
-                  ? CupertinoColors.systemFill
-                  : settings.backgroundColor.withAlpha(77),
-              shadowColor: Colors.transparent,
-              height: 65,
-              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-              animationDuration: const Duration(milliseconds: 400),
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: (index) {
-                setState(() {
-                  _previousIndex = _selectedIndex;
-                  _selectedIndex = index;
-                  _animationController.forward(from: 0);
-                });
-              },
-              destinations: [
-                NavigationDestination(
-                  icon: Icon(
-                    CupertinoIcons.timer,
-                    color: _selectedIndex == 0
-                        ? CupertinoColors.activeBlue
-                        : settings.selectedTheme == 'Light'
-                            ? CupertinoColors.inactiveGray
-                            : settings.textColor
-                                .withAlpha(204), // 0.8 * 255 ≈ 204
-                  ),
-                  label: 'Timer',
+              // Position the sync status badge above the navigation bar
+              Positioned(
+                top: 2,
+                right: 8,
+                child: SyncStatusBadge(
+                  size: 14,
+                  onTap: () {
+                    // Navigate to settings page when tapped if needed
+                    if (_selectedIndex != 3) {
+                      setState(() {
+                        _previousIndex = _selectedIndex;
+                        _selectedIndex = 3;
+                        _animationController.forward(from: 0);
+                      });
+                    }
+                  },
                 ),
-                NavigationDestination(
-                  icon: Icon(
-                    CupertinoIcons.graph_square,
-                    color: _selectedIndex == 1
-                        ? CupertinoColors.activeBlue
-                        : settings.selectedTheme == 'Light'
-                            ? CupertinoColors.inactiveGray
-                            : settings.textColor.withAlpha(204),
-                  ),
-                  label: 'Statistics',
-                ),
-                NavigationDestination(
-                  icon: Icon(
-                    CupertinoIcons.clock,
-                    color: _selectedIndex == 2
-                        ? CupertinoColors.activeBlue
-                        : settings.selectedTheme == 'Light'
-                            ? CupertinoColors.inactiveGray
-                            : settings.textColor.withAlpha(204),
-                  ),
-                  label: 'History',
-                ),
-                NavigationDestination(
-                  icon: Icon(
-                    CupertinoIcons.settings,
-                    color: _selectedIndex == 3
-                        ? CupertinoColors.activeBlue
-                        : settings.selectedTheme == 'Light'
-                            ? CupertinoColors.inactiveGray
-                            : settings.textColor.withAlpha(204),
-                  ),
-                  label: 'Settings',
-                ),
-                NavigationDestination(
-                  icon: Icon(
-                    CupertinoIcons.star,
-                    color: _selectedIndex == 4
-                        ? CupertinoColors.activeBlue
-                        : settings.selectedTheme == 'Light'
-                            ? CupertinoColors.inactiveGray
-                            : settings.textColor.withAlpha(204),
-                  ),
-                  label: 'Premium',
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

@@ -14,7 +14,7 @@
         </intent>
     </queries>
     <application
-        android:label="pomo_timer"
+        android:label="Pomodoro TimeMaster"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <meta-data

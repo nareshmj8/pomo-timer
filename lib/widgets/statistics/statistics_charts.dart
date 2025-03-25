@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:pomo_timer/models/statistics_data.dart';
+import 'package:pomodoro_timemaster/models/statistics_data.dart';
+import 'package:pomodoro_timemaster/utils/theme_constants.dart';
 
 class StatisticsCharts extends StatelessWidget {
   final StatisticsData statsData;
@@ -52,7 +53,8 @@ class StatisticsCharts extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
         boxShadow: [
           BoxShadow(
-            color: CupertinoColors.systemGrey6.withOpacity(0.2),
+            color: CupertinoColors.systemGrey6
+                .withAlpha(ThemeConstants.opacityToAlpha(0.2)),
             spreadRadius: 0,
             blurRadius: 4,
             offset: const Offset(0, 1),
@@ -101,7 +103,8 @@ class StatisticsCharts extends StatelessWidget {
         barRods: [
           BarChartRodData(
             toY: entry.value,
-            color: CupertinoColors.activeBlue.withOpacity(0.8),
+            color: CupertinoColors.activeBlue
+                .withAlpha(ThemeConstants.opacityToAlpha(0.8)),
             width: 14,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(4),
@@ -162,7 +165,8 @@ class StatisticsCharts extends StatelessWidget {
       horizontalInterval: 1,
       getDrawingHorizontalLine: (value) {
         return FlLine(
-          color: CupertinoColors.separator.withOpacity(0.5),
+          color: CupertinoColors.separator
+              .withAlpha(ThemeConstants.opacityToAlpha(0.5)),
           strokeWidth: 0.5,
           dashArray: [4, 4],
         );
